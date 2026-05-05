@@ -52,6 +52,10 @@ export class LoanCalculatorService {
     let remainingMonths = input.months;
     let equalInstallment = this.calcEqualInstallment(balance, currentAnnualRate, remainingMonths);
 
+    let totalCapitalRaw = 0;
+    let totalInterestRaw = 0;
+    let totalOverpaymentsRaw = 0;
+
     const sortedRateChanges = [...rateChanges].sort(
       (a, b) => a.fromInstallment - b.fromInstallment,
     );
@@ -91,6 +95,10 @@ export class LoanCalculatorService {
       balance -= effectiveOverpayment;
       balance = Math.max(0, balance);
 
+      totalCapitalRaw += capitalPart;
+      totalInterestRaw += interestPart;
+      totalOverpaymentsRaw += effectiveOverpayment;
+
       const installment: Installment = {
         number: installmentNumber,
         scheduledPayment: Math.round(scheduledPayment * 100) / 100,
@@ -118,17 +126,13 @@ export class LoanCalculatorService {
       installmentNumber++;
     }
 
-    const totalCapital = schedule.reduce((s, i) => s + i.capitalPart, 0);
-    const totalInterest = schedule.reduce((s, i) => s + i.interestPart, 0);
-    const totalOverpayments = schedule.reduce((s, i) => s + i.overpayment, 0);
-    const totalPaid = totalCapital + totalInterest + totalOverpayments;
-
     return {
       schedule,
-      totalPaid: Math.round(totalPaid * 100) / 100,
-      totalCapital: Math.round(totalCapital * 100) / 100,
-      totalInterest: Math.round(totalInterest * 100) / 100,
-      totalOverpayments: Math.round(totalOverpayments * 100) / 100,
+      totalPaid:
+        Math.round((totalCapitalRaw + totalInterestRaw + totalOverpaymentsRaw) * 100) / 100,
+      totalCapital: Math.round(totalCapitalRaw * 100) / 100,
+      totalInterest: Math.round(totalInterestRaw * 100) / 100,
+      totalOverpayments: Math.round(totalOverpaymentsRaw * 100) / 100,
       actualMonths: schedule.length,
     };
   }

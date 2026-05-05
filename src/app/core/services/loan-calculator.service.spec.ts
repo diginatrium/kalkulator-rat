@@ -45,6 +45,31 @@ describe('LoanCalculatorService', () => {
       const last = result.schedule[result.schedule.length - 1];
       expect(last.remainingBalance).toBeCloseTo(0, 1);
     });
+
+    it('totalCapital == kwota kredytu (bez błędu zaokrąglania)', () => {
+      const result = service.calculateSchedule(input, [], []);
+      expect(result.totalCapital).toBe(400000);
+    });
+  });
+
+  describe('błąd zaokrąglania - totalCapital dla różnych kwot', () => {
+    it('570 000 zł / 360 mc / 7.5% raty równe → totalCapital = 570 000', () => {
+      const result = service.calculateSchedule(
+        { amount: 570000, months: 360, annualRatePercent: 7.5, installmentType: 'EQUAL' },
+        [],
+        [],
+      );
+      expect(result.totalCapital).toBe(570000);
+    });
+
+    it('123 456,78 zł / 240 mc / 5.25% raty malejące → totalCapital = kwota', () => {
+      const result = service.calculateSchedule(
+        { amount: 123456.78, months: 240, annualRatePercent: 5.25, installmentType: 'DECREASING' },
+        [],
+        [],
+      );
+      expect(result.totalCapital).toBeCloseTo(123456.78, 2);
+    });
   });
 
   describe('raty malejące bez nadpłat', () => {
