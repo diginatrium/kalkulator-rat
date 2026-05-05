@@ -4,7 +4,12 @@
       <h4 class="col-title">Kredyt wyjściowy</h4>
       <div class="summary-row">
         <span class="label">Okres kredytowania</span>
-        <span class="value">{{ comparison().baseline.actualMonths }} mc</span>
+        <span class="value">
+          {{ comparison().baseline.actualMonths }} mc
+          @if (comparison().baseline.actualMonths | monthsToYears; as years) {
+            <span class="value-hint">({{ years }})</span>
+          }
+        </span>
       </div>
       <div class="summary-row">
         <span class="label">Całkowita kwota spłaty</span>
@@ -34,7 +39,12 @@
       <h4 class="col-title modified">Kredyt zmodyfikowany</h4>
       <div class="summary-row">
         <span class="label">Okres kredytowania</span>
-        <span class="value">{{ comparison().modified.actualMonths }} mc</span>
+        <span class="value">
+          {{ comparison().modified.actualMonths }} mc
+          @if (comparison().modified.actualMonths | monthsToYears; as years) {
+            <span class="value-hint">({{ years }})</span>
+          }
+        </span>
       </div>
       <div class="summary-row">
         <span class="label">Całkowita kwota spłaty</span>
@@ -67,7 +77,12 @@
     <h4 class="result-title">Rezultat nadpłat</h4>
     <div class="result-row">
       <span class="label">Skrócenie okresu</span>
-      <span class="value positive">{{ comparison().monthsSaved }} mc</span>
+      <span class="value positive">
+        {{ comparison().monthsSaved }} mc
+        @if (comparison().monthsSaved | monthsToYears; as years) {
+          <span class="value-hint">({{ years }})</span>
+        }
+      </span>
     </div>
     <div class="result-row">
       <span class="label">Zmniejszenie kosztów</span>

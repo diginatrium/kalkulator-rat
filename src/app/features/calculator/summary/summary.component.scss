@@ -42,6 +42,13 @@
     &.positive {
       color: var(--green-600, #16a34a);
     }
+
+    .value-hint {
+      font-weight: 400;
+      font-size: 0.8em;
+      color: var(--text-color-secondary, #6b7280);
+      margin-left: 0.25rem;
+    }
   }
 }
 
