@@ -295,6 +295,76 @@ describe('LoanCalculatorService', () => {
     });
   });
 
+  describe('nadpłata cykliczna - inne częstotliwości', () => {
+    const input: LoanInput = {
+      amount: 400000,
+      months: 360,
+      annualRatePercent: 7.5,
+      installmentType: 'EQUAL',
+    };
+
+    it('co kwartał - nadpłata aktywna w ratach 1, 4, 7, 10...', () => {
+      const overpayments: Overpayment[] = [
+        { id: '1', type: 'QUARTERLY', amount: 5000, fromInstallment: 1, effect: 'SHORTEN_PERIOD' },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+      expect(result.schedule[0].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[1].overpayment).toBe(0);
+      expect(result.schedule[2].overpayment).toBe(0);
+      expect(result.schedule[3].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[6].overpayment).toBeCloseTo(5000, 1);
+    });
+
+    it('co pół roku - nadpłata co 6 rat', () => {
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'SEMIANNUAL',
+          amount: 10000,
+          fromInstallment: 1,
+          effect: 'SHORTEN_PERIOD',
+        },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+      expect(result.schedule[0].overpayment).toBeCloseTo(10000, 1);
+      expect(result.schedule[5].overpayment).toBe(0);
+      expect(result.schedule[6].overpayment).toBeCloseTo(10000, 1);
+      expect(result.schedule[12].overpayment).toBeCloseTo(10000, 1);
+    });
+
+    it('co rok - nadpłata co 12 rat skraca okres', () => {
+      const overpayments: Overpayment[] = [
+        { id: '1', type: 'ANNUAL', amount: 20000, fromInstallment: 12, effect: 'SHORTEN_PERIOD' },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+      expect(result.actualMonths).toBeLessThan(360);
+      expect(result.schedule[10].overpayment).toBe(0);
+      expect(result.schedule[11].overpayment).toBeCloseTo(20000, 1);
+      expect(result.schedule[23].overpayment).toBeCloseTo(20000, 1);
+    });
+
+    it('toInstallment ogranicza zakres', () => {
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'QUARTERLY',
+          amount: 5000,
+          fromInstallment: 1,
+          toInstallment: 12,
+          effect: 'SHORTEN_PERIOD',
+        },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+      // raty 1, 4, 7, 10 (rata 13 już poza zakresem)
+      expect(result.schedule[0].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[3].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[6].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[9].overpayment).toBeCloseTo(5000, 1);
+      expect(result.schedule[12].overpayment).toBe(0);
+      expect(result.schedule[15].overpayment).toBe(0);
+    });
+  });
+
   describe('zmiana oprocentowania', () => {
     it('rata powinna zmaleć po zmianie z 7.5% na 5% od raty 60', () => {
       const input: LoanInput = {

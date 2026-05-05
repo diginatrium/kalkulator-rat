@@ -51,7 +51,7 @@
             />
           </div>
 
-          @if (op.type === 'MONTHLY') {
+          @if (op.type !== 'ONE_TIME') {
             <div class="col-12 md:col-4">
               <label class="block text-sm font-semibold mb-1">Do raty nr (puste = koniec)</label>
               <p-inputNumber

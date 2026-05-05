@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { LoanInput } from '../models/loan-input.model';
-import { Overpayment, OverpaymentEffect } from '../models/overpayment.model';
+import { Overpayment, OverpaymentEffect, overpaymentStepMonths } from '../models/overpayment.model';
 import { RateChange } from '../models/rate-change.model';
 import { Installment } from '../models/installment.model';
 import { ComparisonResult, LoanResult } from '../models/loan-result.model';
@@ -174,8 +174,8 @@ export class LoanCalculatorService {
       if (!this.isOverpaymentActive(op, installmentNumber)) continue;
 
       let amount: number;
-      if (op.effect === 'KEEP_TOTAL_PAYMENT' && op.type === 'MONTHLY') {
-        // Przy pierwszej aktywacji zapamiętaj łączną docelową kwotę miesięczną.
+      if (op.effect === 'KEEP_TOTAL_PAYMENT' && op.type !== 'ONE_TIME') {
+        // Przy pierwszej aktywacji zapamiętaj łączną docelową kwotę.
         if (!keepTotalTargets.has(op.id)) {
           keepTotalTargets.set(op.id, scheduledPayment + op.amount);
         }
@@ -205,6 +205,9 @@ export class LoanCalculatorService {
     }
     const from = op.fromInstallment;
     const to = op.toInstallment ?? Infinity;
-    return installmentNumber >= from && installmentNumber <= to;
+    if (installmentNumber < from || installmentNumber > to) return false;
+
+    const step = overpaymentStepMonths(op.type);
+    return step > 0 && (installmentNumber - from) % step === 0;
   }
 }

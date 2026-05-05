@@ -21,8 +21,11 @@ export class OverpaymentsFormComponent {
   overpaymentsChange = output<Overpayment[]>();
 
   readonly typeOptions: { label: string; value: OverpaymentType }[] = [
-    { label: 'Jednorazowa', value: 'ONE_TIME' },
-    { label: 'Miesięczna (cykliczna)', value: 'MONTHLY' },
+    { label: 'Jednorazowo', value: 'ONE_TIME' },
+    { label: 'Co miesiąc', value: 'MONTHLY' },
+    { label: 'Co kwartał', value: 'QUARTERLY' },
+    { label: 'Co pół roku', value: 'SEMIANNUAL' },
+    { label: 'Co rok', value: 'ANNUAL' },
   ];
 
   readonly effectOptions: { label: string; value: OverpaymentEffect; monthlyOnly?: boolean }[] = [
@@ -37,7 +40,7 @@ export class OverpaymentsFormComponent {
 
   effectOptionsFor(type: OverpaymentType): { label: string; value: OverpaymentEffect }[] {
     return this.effectOptions
-      .filter((o) => !o.monthlyOnly || type === 'MONTHLY')
+      .filter((o) => !o.monthlyOnly || type !== 'ONE_TIME')
       .map(({ label, value }) => ({ label, value }));
   }
 
