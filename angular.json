@@ -77,7 +77,7 @@
         "deploy": {
           "builder": "angular-cli-ghpages:deploy",
           "options": {
-            "baseHref": "/kalkulator-rat-/",
+            "baseHref": "/kalkulator-rat/",
             "dir": "dist/kalkulator-rat/browser"
           }
         },

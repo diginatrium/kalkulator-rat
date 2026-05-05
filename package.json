@@ -10,7 +10,7 @@
     "lint": "ng lint",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
-    "deploy": "ng deploy --base-href=/kalkulator-rat-/",
+    "deploy": "ng deploy --base-href=/kalkulator-rat/",
     "prepare": "husky"
   },
   "lint-staged": {
