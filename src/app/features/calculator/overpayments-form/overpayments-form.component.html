@@ -1,0 +1,87 @@
+<p-card header="Nadpłaty kredytu">
+  <div class="flex flex-column gap-3">
+    @for (op of overpayments(); track op.id) {
+      <div class="overpayment-row p-3 border-round border-1 surface-border">
+        <div class="grid">
+          <div class="col-12 md:col-4">
+            <label class="block text-sm font-semibold mb-1">Typ nadpłaty</label>
+            <p-select
+              [options]="typeOptions"
+              [ngModel]="op.type"
+              (ngModelChange)="update(op.id, { type: $event })"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="col-12 md:col-4">
+            <label class="block text-sm font-semibold mb-1">Kwota (zł)</label>
+            <p-inputNumber
+              [ngModel]="op.amount"
+              (ngModelChange)="update(op.id, { amount: $event ?? 0 })"
+              suffix=" zł"
+              [min]="0"
+              [maxFractionDigits]="2"
+              locale="pl-PL"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="col-12 md:col-4">
+            <label class="block text-sm font-semibold mb-1">Skutek</label>
+            <p-select
+              [options]="effectOptions"
+              [ngModel]="op.effect"
+              (ngModelChange)="update(op.id, { effect: $event })"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="col-12 md:col-4">
+            <label class="block text-sm font-semibold mb-1">Od raty nr</label>
+            <p-inputNumber
+              [ngModel]="op.fromInstallment"
+              (ngModelChange)="update(op.id, { fromInstallment: $event ?? 1 })"
+              [min]="1"
+              [maxFractionDigits]="0"
+              styleClass="w-full"
+            />
+          </div>
+
+          @if (op.type === 'MONTHLY') {
+            <div class="col-12 md:col-4">
+              <label class="block text-sm font-semibold mb-1">Do raty nr (puste = koniec)</label>
+              <p-inputNumber
+                [ngModel]="op.toInstallment ?? null"
+                (ngModelChange)="update(op.id, { toInstallment: $event ?? undefined })"
+                [min]="1"
+                [maxFractionDigits]="0"
+                styleClass="w-full"
+              />
+            </div>
+          }
+
+          <div class="col-12 flex justify-content-end">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              (onClick)="removeOverpayment(op.id)"
+              pTooltip="Usuń nadpłatę"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <p-button
+      label="Dodaj nadpłatę"
+      icon="pi pi-plus"
+      [outlined]="true"
+      (onClick)="addOverpayment()"
+    />
+  </div>
+</p-card>

@@ -1,0 +1,7 @@
+.rate-row {
+  background: var(--surface-50, #fafafa);
+}
+
+:host ::ng-deep .p-inputnumber {
+  width: 100%;
+}

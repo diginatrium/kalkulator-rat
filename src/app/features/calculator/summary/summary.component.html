@@ -1,0 +1,85 @@
+<p-card header="Podsumowanie">
+  <div class="summary-grid">
+    <div class="summary-col">
+      <h4 class="col-title">Kredyt wyjściowy</h4>
+      <div class="summary-row">
+        <span class="label">Okres kredytowania</span>
+        <span class="value">{{ comparison().baseline.actualMonths }} mc</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Całkowita kwota spłaty</span>
+        <span class="value">{{ comparison().baseline.totalPaid | number: '1.2-2' : 'pl' }} zł</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Kapitał</span>
+        <span class="value"
+          >{{ comparison().baseline.totalCapital | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+      <div class="summary-row">
+        <span class="label">Odsetki</span>
+        <span class="value"
+          >{{ comparison().baseline.totalInterest | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+      <div class="summary-row">
+        <span class="label">Nadpłaty</span>
+        <span class="value"
+          >{{ comparison().baseline.totalOverpayments | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+    </div>
+
+    <div class="summary-col">
+      <h4 class="col-title modified">Kredyt zmodyfikowany</h4>
+      <div class="summary-row">
+        <span class="label">Okres kredytowania</span>
+        <span class="value">{{ comparison().modified.actualMonths }} mc</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Całkowita kwota spłaty</span>
+        <span class="value">{{ comparison().modified.totalPaid | number: '1.2-2' : 'pl' }} zł</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Kapitał</span>
+        <span class="value"
+          >{{ comparison().modified.totalCapital | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+      <div class="summary-row">
+        <span class="label">Odsetki</span>
+        <span class="value"
+          >{{ comparison().modified.totalInterest | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+      <div class="summary-row">
+        <span class="label">Nadpłaty</span>
+        <span class="value"
+          >{{ comparison().modified.totalOverpayments | number: '1.2-2' : 'pl' }} zł</span
+        >
+      </div>
+    </div>
+  </div>
+
+  <p-divider />
+
+  <div class="result-section">
+    <h4 class="result-title">Rezultat nadpłat</h4>
+    <div class="result-row">
+      <span class="label">Skrócenie okresu</span>
+      <span class="value positive">{{ comparison().monthsSaved }} mc</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Zmniejszenie kosztów</span>
+      <span class="value positive"
+        >{{ comparison().costSavedAmount | number: '1.2-2' : 'pl' }} zł</span
+      >
+    </div>
+    <div class="result-row">
+      <span class="label">Zmniejszenie kosztów</span>
+      <span class="value positive"
+        >{{ comparison().costSavedPercent | number: '1.2-2' : 'pl' }} %</span
+      >
+    </div>
+  </div>
+</p-card>

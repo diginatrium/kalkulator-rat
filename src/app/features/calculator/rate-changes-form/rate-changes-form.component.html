@@ -1,0 +1,49 @@
+<p-card header="Zmiany oprocentowania">
+  <div class="flex flex-column gap-3">
+    @for (rc of rateChanges(); track rc.id) {
+      <div class="rate-row p-3 border-round border-1 surface-border">
+        <div class="grid align-items-end">
+          <div class="col-12 md:col-5">
+            <label class="block text-sm font-semibold mb-1">Od raty nr</label>
+            <p-inputNumber
+              [ngModel]="rc.fromInstallment"
+              (ngModelChange)="update(rc.id, { fromInstallment: $event ?? 1 })"
+              [min]="1"
+              [maxFractionDigits]="0"
+              styleClass="w-full"
+            />
+          </div>
+          <div class="col-12 md:col-5">
+            <label class="block text-sm font-semibold mb-1">Nowe oprocentowanie (%)</label>
+            <p-inputNumber
+              [ngModel]="rc.newAnnualRatePercent"
+              (ngModelChange)="update(rc.id, { newAnnualRatePercent: $event ?? 0 })"
+              suffix=" %"
+              [min]="0"
+              [max]="100"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              styleClass="w-full"
+            />
+          </div>
+          <div class="col-12 md:col-2 flex justify-content-end">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              (onClick)="removeRateChange(rc.id)"
+              pTooltip="Usuń zmianę"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <p-button
+      label="Dodaj zmianę oprocentowania"
+      icon="pi pi-plus"
+      [outlined]="true"
+      (onClick)="addRateChange()"
+    />
+  </div>
+</p-card>

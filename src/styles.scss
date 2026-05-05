@@ -1,0 +1,43 @@
+@use 'primeicons/primeicons.css';
+@use 'primeflex/primeflex.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family, 'Segoe UI', Arial, sans-serif);
+  background: var(--surface-ground, #f8f9fa);
+  color: var(--text-color, #333);
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.section-card {
+  border-radius: 0.5rem;
+}
+
+.positive-value {
+  color: var(--green-600, #2e7d32);
+  font-weight: 600;
+}
+
+.currency-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-header-bg {
+  background: var(--primary-50, #e3f2fd);
+}
+
+:root {
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

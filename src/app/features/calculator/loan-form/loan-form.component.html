@@ -1,0 +1,65 @@
+<p-card header="Parametry kredytu">
+  <div class="flex flex-column gap-4">
+    <div class="field">
+      <label for="amount" class="block font-semibold mb-2">Kwota kredytu</label>
+      <p-inputNumber
+        inputId="amount"
+        [ngModel]="loanInput().amount"
+        (ngModelChange)="onAmountChange($event)"
+        suffix=" zł"
+        [min]="0"
+        [maxFractionDigits]="0"
+        [useGrouping]="true"
+        locale="pl-PL"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label for="months" class="block font-semibold mb-2">Liczba rat</label>
+      <p-inputNumber
+        inputId="months"
+        [ngModel]="loanInput().months"
+        (ngModelChange)="onMonthsChange($event)"
+        suffix=" mc"
+        [min]="1"
+        [max]="480"
+        [maxFractionDigits]="0"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label for="rate" class="block font-semibold mb-2">Oprocentowanie roczne</label>
+      <p-inputNumber
+        inputId="rate"
+        [ngModel]="loanInput().annualRatePercent"
+        (ngModelChange)="onRateChange($event)"
+        suffix=" %"
+        [min]="0"
+        [max]="100"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label class="block font-semibold mb-2">Rodzaj rat</label>
+      <div class="flex gap-4">
+        @for (type of installmentTypes; track type.value) {
+          <div class="flex align-items-center gap-2">
+            <p-radioButton
+              [inputId]="'type_' + type.value"
+              [value]="type.value"
+              [ngModel]="loanInput().installmentType"
+              (ngModelChange)="onTypeChange($event)"
+              name="installmentType"
+            />
+            <label [for]="'type_' + type.value">{{ type.label }}</label>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</p-card>

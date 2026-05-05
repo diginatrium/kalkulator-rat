@@ -1,0 +1,50 @@
+<p-toast />
+
+<div class="page-container">
+  <header class="page-header">
+    <h1>Kalkulator rat kredytowych</h1>
+    <p class="subtitle">Oblicz harmonogram spłaty i sprawdź wpływ nadpłat na Twój kredyt</p>
+  </header>
+
+  <div class="main-grid">
+    <!-- Kolumna lewa: formularze -->
+    <aside class="forms-column">
+      <app-loan-form [loanInput]="loanInput()" (loanInputChange)="loanInput.set($event)" />
+
+      <app-overpayments-form
+        [overpayments]="overpayments()"
+        (overpaymentsChange)="overpayments.set($event)"
+      />
+
+      <app-rate-changes-form
+        [rateChanges]="rateChanges()"
+        (rateChangesChange)="rateChanges.set($event)"
+      />
+    </aside>
+
+    <!-- Kolumna prawa: wyniki -->
+    <section class="results-column">
+      <app-summary [comparison]="comparison()" />
+
+      <app-balance-chart [baseline]="comparison().baseline" [modified]="comparison().modified" />
+
+      <app-structure-chart [result]="comparison().modified" />
+
+      <div class="export-section">
+        <p-button
+          label="Eksportuj do PDF"
+          icon="pi pi-file-pdf"
+          severity="help"
+          [loading]="exportingPdf()"
+          (onClick)="exportPdf()"
+        />
+      </div>
+    </section>
+  </div>
+
+  <!-- Harmonogram - pełna szerokość -->
+  <app-schedule-table
+    [baselineSchedule]="comparison().baseline.schedule"
+    [modifiedSchedule]="comparison().modified.schedule"
+  />
+</div>

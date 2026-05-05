@@ -1,0 +1,8 @@
+.overpayment-row {
+  background: var(--surface-50, #fafafa);
+}
+
+:host ::ng-deep .p-inputnumber,
+:host ::ng-deep .p-select {
+  width: 100%;
+}
