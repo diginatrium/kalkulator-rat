@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { TooltipModule } from 'primeng/tooltip';
 import { RateChange } from '../../../core/models/rate-change.model';
 
 @Component({
   selector: 'app-rate-changes-form',
   templateUrl: './rate-changes-form.component.html',
   styleUrl: './rate-changes-form.component.scss',
-  imports: [FormsModule, InputNumberModule, ButtonModule, CardModule],
+  imports: [FormsModule, InputNumberModule, ButtonModule, CardModule, TooltipModule],
 })
 export class RateChangesFormComponent {
   rateChanges = input.required<RateChange[]>();

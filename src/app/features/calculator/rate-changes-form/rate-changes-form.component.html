@@ -2,8 +2,8 @@
   <div class="flex flex-column gap-3">
     @for (rc of rateChanges(); track rc.id) {
       <div class="rate-row p-3 border-round border-1 surface-border">
-        <div class="grid align-items-end">
-          <div class="col-12 md:col-5">
+        <div class="grid formgrid">
+          <div class="field col-6">
             <label class="block text-sm font-semibold mb-1">Od raty nr</label>
             <p-inputNumber
               [ngModel]="rc.fromInstallment"
@@ -13,8 +13,8 @@
               styleClass="w-full"
             />
           </div>
-          <div class="col-12 md:col-5">
-            <label class="block text-sm font-semibold mb-1">Nowe oprocentowanie (%)</label>
+          <div class="field col-6">
+            <label class="block text-sm font-semibold mb-1">Nowe oprocentowanie</label>
             <p-inputNumber
               [ngModel]="rc.newAnnualRatePercent"
               (ngModelChange)="update(rc.id, { newAnnualRatePercent: $event ?? 0 })"
@@ -26,7 +26,7 @@
               styleClass="w-full"
             />
           </div>
-          <div class="col-12 md:col-2 flex justify-content-end">
+          <div class="col-12 flex justify-content-end">
             <p-button
               icon="pi pi-trash"
               severity="danger"

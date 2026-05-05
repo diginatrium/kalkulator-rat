@@ -4,6 +4,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { TooltipModule } from 'primeng/tooltip';
 import {
   Overpayment,
   OverpaymentEffect,
@@ -14,7 +15,7 @@ import {
   selector: 'app-overpayments-form',
   templateUrl: './overpayments-form.component.html',
   styleUrl: './overpayments-form.component.scss',
-  imports: [FormsModule, InputNumberModule, SelectModule, ButtonModule, CardModule],
+  imports: [FormsModule, InputNumberModule, SelectModule, ButtonModule, CardModule, TooltipModule],
 })
 export class OverpaymentsFormComponent {
   overpayments = input.required<Overpayment[]>();

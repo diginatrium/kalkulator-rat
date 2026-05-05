@@ -1,8 +1,24 @@
 .overpayment-row {
   background: var(--surface-50, #fafafa);
+  overflow: hidden;
 }
 
-:host ::ng-deep .p-inputnumber,
-:host ::ng-deep .p-select {
-  width: 100%;
+:host ::ng-deep {
+  .p-inputnumber,
+  .p-select,
+  .p-inputnumber-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  // Reset PrimeFlex grid negatives so wąska kolumna nie powoduje overflow
+  .grid {
+    margin-right: 0;
+    margin-left: 0;
+  }
+  .grid > .field,
+  .grid > [class*='col-'] {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
 }
