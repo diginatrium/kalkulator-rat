@@ -5,6 +5,11 @@ import { RateChange } from '../models/rate-change.model';
 import { Installment } from '../models/installment.model';
 import { ComparisonResult, LoanResult } from '../models/loan-result.model';
 
+interface OverpaymentsBreakdown {
+  totalAmount: number;
+  primaryEffect: OverpaymentEffect;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LoanCalculatorService {
   calculateComparison(
@@ -60,6 +65,10 @@ export class LoanCalculatorService {
       (a, b) => a.fromInstallment - b.fromInstallment,
     );
 
+    // KEEP_TOTAL_PAYMENT: stała łączna kwota miesięczna (rata + nadpłata).
+    // Zapamiętujemy targetTotal per nadpłata przy pierwszej aktywacji.
+    const keepTotalTargets = new Map<string, number>();
+
     let installmentNumber = 1;
     const maxIterations = input.months * 2 + 100;
 
@@ -88,7 +97,13 @@ export class LoanCalculatorService {
 
       capitalPart = Math.max(0, capitalPart);
 
-      const overpaymentAmount = this.getOverpaymentForInstallment(overpayments, installmentNumber);
+      const { totalAmount: overpaymentAmount, primaryEffect } =
+        this.computeOverpaymentsForInstallment(
+          overpayments,
+          installmentNumber,
+          scheduledPayment,
+          keepTotalTargets,
+        );
       const effectiveOverpayment = Math.min(overpaymentAmount, Math.max(0, balance - capitalPart));
 
       balance -= capitalPart;
@@ -112,8 +127,8 @@ export class LoanCalculatorService {
       if (effectiveOverpayment > 0) {
         const remainingAfter = input.months - installmentNumber;
         if (remainingAfter > 0) {
-          const primaryEffect = this.getPrimaryOverpaymentEffect(overpayments, installmentNumber);
-          if (primaryEffect === 'REDUCE_INSTALLMENT') {
+          // Zarówno REDUCE_INSTALLMENT jak i KEEP_TOTAL_PAYMENT przeliczają ratę.
+          if (primaryEffect === 'REDUCE_INSTALLMENT' || primaryEffect === 'KEEP_TOTAL_PAYMENT') {
             equalInstallment = this.calcEqualInstallment(
               balance,
               currentAnnualRate,
@@ -145,13 +160,43 @@ export class LoanCalculatorService {
     return (balance * r * factor) / (factor - 1);
   }
 
-  private getOverpaymentForInstallment(
+  private computeOverpaymentsForInstallment(
     overpayments: Overpayment[],
     installmentNumber: number,
-  ): number {
-    return overpayments
-      .filter((op) => this.isOverpaymentActive(op, installmentNumber))
-      .reduce((sum, op) => sum + op.amount, 0);
+    scheduledPayment: number,
+    keepTotalTargets: Map<string, number>,
+  ): OverpaymentsBreakdown {
+    let totalAmount = 0;
+    let primaryEffect: OverpaymentEffect = 'SHORTEN_PERIOD';
+    let foundPrimary = false;
+
+    for (const op of overpayments) {
+      if (!this.isOverpaymentActive(op, installmentNumber)) continue;
+
+      let amount: number;
+      if (op.effect === 'KEEP_TOTAL_PAYMENT' && op.type === 'MONTHLY') {
+        // Przy pierwszej aktywacji zapamiętaj łączną docelową kwotę miesięczną.
+        if (!keepTotalTargets.has(op.id)) {
+          keepTotalTargets.set(op.id, scheduledPayment + op.amount);
+        }
+        const target = keepTotalTargets.get(op.id) as number;
+        amount = Math.max(0, target - scheduledPayment);
+      } else {
+        amount = op.amount;
+      }
+
+      totalAmount += amount;
+      if (!foundPrimary) {
+        // KEEP_TOTAL_PAYMENT na ONE_TIME nie ma sensu - zachowaj się jak SHORTEN_PERIOD.
+        primaryEffect =
+          op.effect === 'KEEP_TOTAL_PAYMENT' && op.type === 'ONE_TIME'
+            ? 'SHORTEN_PERIOD'
+            : op.effect;
+        foundPrimary = true;
+      }
+    }
+
+    return { totalAmount, primaryEffect };
   }
 
   private isOverpaymentActive(op: Overpayment, installmentNumber: number): boolean {
@@ -161,13 +206,5 @@ export class LoanCalculatorService {
     const from = op.fromInstallment;
     const to = op.toInstallment ?? Infinity;
     return installmentNumber >= from && installmentNumber <= to;
-  }
-
-  private getPrimaryOverpaymentEffect(
-    overpayments: Overpayment[],
-    installmentNumber: number,
-  ): OverpaymentEffect {
-    const active = overpayments.filter((op) => this.isOverpaymentActive(op, installmentNumber));
-    return active.length > 0 ? active[0].effect : 'SHORTEN_PERIOD';
   }
 }

@@ -205,6 +205,96 @@ describe('LoanCalculatorService', () => {
     });
   });
 
+  describe('nadpłata KEEP_TOTAL_PAYMENT (stała łączna kwota miesięczna)', () => {
+    it('łączna kwota (rata + nadpłata) pozostaje stała w każdej racie', () => {
+      const input: LoanInput = {
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      };
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'MONTHLY',
+          amount: 1000,
+          fromInstallment: 1,
+          effect: 'KEEP_TOTAL_PAYMENT',
+        },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+
+      const firstTotal = result.schedule[0].scheduledPayment + result.schedule[0].overpayment;
+      const tenthTotal = result.schedule[9].scheduledPayment + result.schedule[9].overpayment;
+      const fiftiethTotal = result.schedule[49].scheduledPayment + result.schedule[49].overpayment;
+
+      expect(tenthTotal).toBeCloseTo(firstTotal, 0);
+      expect(fiftiethTotal).toBeCloseTo(firstTotal, 0);
+    });
+
+    it('rata maleje, a nadpłata rośnie z biegiem czasu', () => {
+      const input: LoanInput = {
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      };
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'MONTHLY',
+          amount: 1000,
+          fromInstallment: 1,
+          effect: 'KEEP_TOTAL_PAYMENT',
+        },
+      ];
+      const result = service.calculateSchedule(input, overpayments, []);
+
+      // Po 50 ratach: rata mniejsza, nadpłata większa niż na początku.
+      expect(result.schedule[49].scheduledPayment).toBeLessThan(
+        result.schedule[0].scheduledPayment,
+      );
+      expect(result.schedule[49].overpayment).toBeGreaterThan(result.schedule[0].overpayment);
+    });
+
+    it('powinno skrócić okres mocniej niż REDUCE_INSTALLMENT przy tej samej startowej nadpłacie', () => {
+      const input: LoanInput = {
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      };
+      const reduce = service.calculateSchedule(
+        input,
+        [
+          {
+            id: '1',
+            type: 'MONTHLY',
+            amount: 1000,
+            fromInstallment: 1,
+            effect: 'REDUCE_INSTALLMENT',
+          },
+        ],
+        [],
+      );
+      const keepTotal = service.calculateSchedule(
+        input,
+        [
+          {
+            id: '1',
+            type: 'MONTHLY',
+            amount: 1000,
+            fromInstallment: 1,
+            effect: 'KEEP_TOTAL_PAYMENT',
+          },
+        ],
+        [],
+      );
+      // KEEP_TOTAL z czasem nadpłaca więcej, więc krótszy okres
+      expect(keepTotal.actualMonths).toBeLessThan(reduce.actualMonths);
+    });
+  });
+
   describe('zmiana oprocentowania', () => {
     it('rata powinna zmaleć po zmianie z 7.5% na 5% od raty 60', () => {
       const input: LoanInput = {

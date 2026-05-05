@@ -25,10 +25,21 @@ export class OverpaymentsFormComponent {
     { label: 'Miesięczna (cykliczna)', value: 'MONTHLY' },
   ];
 
-  readonly effectOptions: { label: string; value: OverpaymentEffect }[] = [
+  readonly effectOptions: { label: string; value: OverpaymentEffect; monthlyOnly?: boolean }[] = [
     { label: 'Skróć okres kredytu', value: 'SHORTEN_PERIOD' },
     { label: 'Zmniejsz ratę', value: 'REDUCE_INSTALLMENT' },
+    {
+      label: 'Stała łączna kwota miesięczna (rata + nadpłata)',
+      value: 'KEEP_TOTAL_PAYMENT',
+      monthlyOnly: true,
+    },
   ];
+
+  effectOptionsFor(type: OverpaymentType): { label: string; value: OverpaymentEffect }[] {
+    return this.effectOptions
+      .filter((o) => !o.monthlyOnly || type === 'MONTHLY')
+      .map(({ label, value }) => ({ label, value }));
+  }
 
   addOverpayment(): void {
     const next: Overpayment = {
@@ -50,7 +61,11 @@ export class OverpaymentsFormComponent {
     const updated = this.overpayments().map((op) => {
       if (op.id !== id) return op;
       const merged = { ...op, ...partial };
-      if (merged.type === 'ONE_TIME') merged.toInstallment = undefined;
+      if (merged.type === 'ONE_TIME') {
+        merged.toInstallment = undefined;
+        // KEEP_TOTAL_PAYMENT nie ma sensu dla jednorazowej.
+        if (merged.effect === 'KEEP_TOTAL_PAYMENT') merged.effect = 'SHORTEN_PERIOD';
+      }
       return merged;
     });
     this.overpaymentsChange.emit(updated);

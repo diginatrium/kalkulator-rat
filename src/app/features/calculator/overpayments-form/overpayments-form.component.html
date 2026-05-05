@@ -31,7 +31,7 @@
           <div class="col-12 md:col-4">
             <label class="block text-sm font-semibold mb-1">Skutek</label>
             <p-select
-              [options]="effectOptions"
+              [options]="effectOptionsFor(op.type)"
               [ngModel]="op.effect"
               (ngModelChange)="update(op.id, { effect: $event })"
               optionLabel="label"
