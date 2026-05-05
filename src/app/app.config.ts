@@ -2,7 +2,7 @@ import {
   ApplicationConfig,
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection,
+  provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -15,7 +15,7 @@ registerLocaleData(localePl);
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideZonelessChangeDetection(),
     provideAnimationsAsync(),
     { provide: LOCALE_ID, useValue: 'pl' },
     providePrimeNG({
