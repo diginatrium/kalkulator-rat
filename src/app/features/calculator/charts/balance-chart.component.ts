@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
-import { LoanResult } from '../../../core/models/loan-result.model';
+import { ThreePlanComparison } from '../../../core/models/loan-result.model';
 
 @Component({
   selector: 'app-balance-chart',
@@ -10,53 +10,41 @@ import { LoanResult } from '../../../core/models/loan-result.model';
   imports: [ChartModule, CardModule],
 })
 export class BalanceChartComponent {
-  baseline = input.required<LoanResult>();
-  modified = input.required<LoanResult>();
+  comparison = input.required<ThreePlanComparison>();
 
   chartData = computed(() => {
-    const base = this.baseline();
-    const mod = this.modified();
-    const maxLen = Math.max(base.schedule.length, mod.schedule.length);
-    const step = Math.ceil(maxLen / 120);
+    const c = this.comparison();
+    const series = [
+      { plan: c.baseline, color: '#9ca3af', fill: 'rgba(156, 163, 175, 0.1)' },
+      { plan: c.planA, color: '#3b82f6', fill: 'rgba(59, 130, 246, 0.1)' },
+      { plan: c.planB, color: '#22c55e', fill: 'rgba(34, 197, 94, 0.1)' },
+    ];
+
+    const maxLen = Math.max(...series.map((s) => s.plan.result.schedule.length));
+    const step = Math.max(1, Math.ceil(maxLen / 120));
 
     const labels: string[] = [];
-    const baseData: number[] = [];
-    const modData: number[] = [];
-
-    for (let i = 0; i < maxLen; i += step) {
-      labels.push(`${i + 1}`);
-      baseData.push(base.schedule[i]?.remainingBalance ?? 0);
-      modData.push(mod.schedule[i]?.remainingBalance ?? 0);
-    }
-
-    if (base.schedule.length > 0) {
-      labels.push(`${base.schedule.length}`);
-      baseData.push(0);
-      modData.push(0);
-    }
+    for (let i = 0; i < maxLen; i += step) labels.push(`${i + 1}`);
+    if (maxLen > 0) labels.push(`${maxLen}`);
 
     return {
       labels,
-      datasets: [
-        {
-          label: 'Saldo wyjściowe',
-          data: baseData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          fill: true,
+      datasets: series.map(({ plan, color, fill }) => {
+        const data: number[] = [];
+        for (let i = 0; i < maxLen; i += step) {
+          data.push(plan.result.schedule[i]?.remainingBalance ?? 0);
+        }
+        if (maxLen > 0) data.push(0);
+        return {
+          label: plan.displayName,
+          data,
+          borderColor: color,
+          backgroundColor: fill,
+          fill: false,
           tension: 0.3,
           pointRadius: 0,
-        },
-        {
-          label: 'Saldo zmodyfikowane',
-          data: modData,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0,
-        },
-      ],
+        };
+      }),
     };
   });
 

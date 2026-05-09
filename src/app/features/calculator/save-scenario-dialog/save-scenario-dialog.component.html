@@ -1,0 +1,78 @@
+<p-dialog
+  header="Zapisz / Wczytaj scenariusz"
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [style]="{ width: '520px', maxWidth: '95vw' }"
+  [closable]="true"
+  [dismissableMask]="true"
+>
+  <div class="flex flex-column gap-4">
+    <div class="save-section">
+      <label for="scenarioName" class="font-semibold mb-2 block">
+        Zapisz aktualny stan jako:
+      </label>
+      <div class="flex gap-2">
+        <input
+          pInputText
+          id="scenarioName"
+          [ngModel]="newName()"
+          (ngModelChange)="newName.set($event)"
+          placeholder="np. Mój kredyt"
+          class="flex-grow-1"
+        />
+        <p-button
+          label="Zapisz"
+          icon="pi pi-save"
+          (onClick)="saveAs()"
+          [disabled]="!newName().trim()"
+        />
+      </div>
+      @if (errorMsg()) {
+        <p-message severity="error" [text]="errorMsg()!" styleClass="mt-2" />
+      }
+    </div>
+
+    <div class="saved-list">
+      <h4 class="font-semibold mb-2">Zapisane scenariusze ({{ scenarios().length }})</h4>
+      @if (scenarios().length === 0) {
+        <p class="empty-text">Brak zapisanych scenariuszy.</p>
+      } @else {
+        <ul class="scenario-list">
+          @for (s of scenarios(); track s.name) {
+            <li class="scenario-item">
+              <div class="scenario-info">
+                <span class="scenario-name">{{ s.name }}</span>
+                <span class="scenario-date">{{ s.savedAt | date: 'dd.MM.yyyy HH:mm' }}</span>
+              </div>
+              <div class="scenario-actions">
+                <p-button
+                  icon="pi pi-folder-open"
+                  size="small"
+                  [text]="true"
+                  (onClick)="load(s.name)"
+                  pTooltip="Wczytaj"
+                />
+                <p-button
+                  icon="pi pi-pencil"
+                  size="small"
+                  [text]="true"
+                  (onClick)="rename(s.name)"
+                  pTooltip="Zmień nazwę"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  size="small"
+                  severity="danger"
+                  [text]="true"
+                  (onClick)="remove(s.name)"
+                  pTooltip="Usuń"
+                />
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</p-dialog>

@@ -1,20 +1,22 @@
 <p-card header="Harmonogram spłaty kredytu">
-  <p-tabs value="0">
+  <p-tabs value="planA">
     <p-tablist>
-      <p-tab value="0">Kredyt wyjściowy</p-tab>
-      <p-tab value="1">Kredyt zmodyfikowany</p-tab>
+      <p-tab value="baseline">Bez nadpłat</p-tab>
+      <p-tab value="planA">Plan A</p-tab>
+      <p-tab value="planB">Plan B</p-tab>
     </p-tablist>
 
     <p-tabpanels>
-      <p-tabpanel value="0">
+      <p-tabpanel value="baseline">
         <ng-container
           *ngTemplateOutlet="scheduleTable; context: { schedule: baselineSchedule() }"
         />
       </p-tabpanel>
-      <p-tabpanel value="1">
-        <ng-container
-          *ngTemplateOutlet="scheduleTable; context: { schedule: modifiedSchedule() }"
-        />
+      <p-tabpanel value="planA">
+        <ng-container *ngTemplateOutlet="scheduleTable; context: { schedule: planASchedule() }" />
+      </p-tabpanel>
+      <p-tabpanel value="planB">
+        <ng-container *ngTemplateOutlet="scheduleTable; context: { schedule: planBSchedule() }" />
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>
@@ -35,6 +37,7 @@
     <ng-template #header>
       <tr>
         <th class="text-center" pSortableColumn="number">Nr <p-sortIcon field="number" /></th>
+        <th class="text-center" pSortableColumn="date">Data <p-sortIcon field="date" /></th>
         <th class="text-right" pSortableColumn="scheduledPayment">
           Rata (zł) <p-sortIcon field="scheduledPayment" />
         </th>
@@ -50,11 +53,17 @@
         <th class="text-right" pSortableColumn="remainingBalance">
           Saldo (zł) <p-sortIcon field="remainingBalance" />
         </th>
+        @if (inflationEnabled()) {
+          <th class="text-right" pSortableColumn="realValueOfPayment">
+            Realna wart. (zł) <p-sortIcon field="realValueOfPayment" />
+          </th>
+        }
       </tr>
     </ng-template>
     <ng-template #body let-inst>
       <tr [class.overpayment-row]="inst.overpayment > 0">
         <td class="text-center">{{ inst.number }}</td>
+        <td class="text-center">{{ inst.date | date: 'MM.yyyy' }}</td>
         <td class="text-right">{{ inst.scheduledPayment | number: '1.2-2' : 'pl' }}</td>
         <td class="text-right">{{ inst.capitalPart | number: '1.2-2' : 'pl' }}</td>
         <td class="text-right">{{ inst.interestPart | number: '1.2-2' : 'pl' }}</td>
@@ -66,11 +75,18 @@
           }
         </td>
         <td class="text-right">{{ inst.remainingBalance | number: '1.2-2' : 'pl' }}</td>
+        @if (inflationEnabled()) {
+          <td class="text-right real">
+            {{ inst.realValueOfPayment | number: '1.2-2' : 'pl' }}
+          </td>
+        }
       </tr>
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="6" class="text-center py-4">Brak danych harmonogramu.</td>
+        <td [attr.colspan]="inflationEnabled() ? 8 : 7" class="text-center py-4">
+          Brak danych harmonogramu.
+        </td>
       </tr>
     </ng-template>
   </p-table>

@@ -1,40 +1,88 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { RadioButtonModule } from 'primeng/radiobutton';
 import { CardModule } from 'primeng/card';
-import { DividerModule } from 'primeng/divider';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { DatePickerModule } from 'primeng/datepicker';
+import { MessageModule } from 'primeng/message';
 import { InstallmentType, LoanInput } from '../../../core/models/loan-input.model';
+import { LoanSliderInputComponent } from '../../../shared/loan-slider-input.component';
+import { EducationalTooltipComponent } from '../../../shared/educational-tooltip.component';
 
 @Component({
   selector: 'app-loan-form',
   templateUrl: './loan-form.component.html',
   styleUrl: './loan-form.component.scss',
-  imports: [FormsModule, InputNumberModule, RadioButtonModule, CardModule, DividerModule],
+  imports: [
+    FormsModule,
+    CardModule,
+    RadioButtonModule,
+    CheckboxModule,
+    InputNumberModule,
+    DatePickerModule,
+    MessageModule,
+    LoanSliderInputComponent,
+    EducationalTooltipComponent,
+  ],
 })
 export class LoanFormComponent {
   loanInput = input.required<LoanInput>();
   loanInputChange = output<LoanInput>();
 
-  readonly installmentTypes: { label: string; value: InstallmentType }[] = [
-    { label: 'Równe (annuitetowe)', value: 'EQUAL' },
-    { label: 'Malejące', value: 'DECREASING' },
+  readonly installmentTypes: { label: string; value: InstallmentType; tip: string }[] = [
+    {
+      label: 'Równe (annuitetowe)',
+      value: 'EQUAL',
+      tip: 'Stała rata przez cały okres kredytu - na początku przeważają odsetki, potem kapitał',
+    },
+    {
+      label: 'Malejące',
+      value: 'DECREASING',
+      tip: 'Stała część kapitałowa, malejące odsetki - pierwsze raty wyższe, ostatnie niższe',
+    },
   ];
 
-  onAmountChange(value: number | null): void {
-    this.emit({ amount: value ?? 0 });
+  errors = computed(() => {
+    const i = this.loanInput();
+    const e: string[] = [];
+    if (!Number.isFinite(i.amount) || i.amount <= 0) e.push('Kwota musi być dodatnia');
+    if (i.amount > 100_000_000) e.push('Kwota zbyt wysoka (max 100 000 000 zł)');
+    if (!Number.isFinite(i.months) || i.months < 1 || i.months > 480)
+      e.push('Liczba rat musi być w zakresie 1-480');
+    if (i.annualRatePercent < 0 || i.annualRatePercent > 50)
+      e.push('Oprocentowanie musi być w zakresie 0-50%');
+    if (i.inflationRatePercent < 0 || i.inflationRatePercent > 30)
+      e.push('Inflacja musi być w zakresie 0-30%');
+    return e;
+  });
+
+  onAmountChange(amount: number): void {
+    this.emit({ amount });
   }
 
-  onMonthsChange(value: number | null): void {
-    this.emit({ months: value ?? 0 });
+  onMonthsChange(months: number): void {
+    this.emit({ months });
   }
 
-  onRateChange(value: number | null): void {
-    this.emit({ annualRatePercent: value ?? 0 });
+  onRateChange(annualRatePercent: number): void {
+    this.emit({ annualRatePercent });
   }
 
-  onTypeChange(value: InstallmentType): void {
-    this.emit({ installmentType: value });
+  onTypeChange(installmentType: InstallmentType): void {
+    this.emit({ installmentType });
+  }
+
+  onStartDateChange(startDate: Date | null): void {
+    if (startDate) this.emit({ startDate });
+  }
+
+  onInflationEnabledChange(inflationEnabled: boolean): void {
+    this.emit({ inflationEnabled });
+  }
+
+  onInflationRateChange(inflationRatePercent: number | null): void {
+    this.emit({ inflationRatePercent: inflationRatePercent ?? 0 });
   }
 
   private emit(partial: Partial<LoanInput>): void {

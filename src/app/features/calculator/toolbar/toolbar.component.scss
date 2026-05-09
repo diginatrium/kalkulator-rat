@@ -1,0 +1,22 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--p-surface-50, #fafafa);
+  border-radius: 0.5rem;
+  border: 1px solid var(--p-surface-200, #e5e7eb);
+
+  &-section {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+}
+
+@media print {
+  :host {
+    display: none !important;
+  }
+}

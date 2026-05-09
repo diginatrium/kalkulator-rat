@@ -7,6 +7,9 @@ export interface LoanResult {
   totalInterest: number;
   totalOverpayments: number;
   actualMonths: number;
+  averageMonthlyPayment: number;
+  totalPaidReal?: number;
+  totalInterestReal?: number;
 }
 
 export interface ComparisonResult {
@@ -15,4 +18,21 @@ export interface ComparisonResult {
   monthsSaved: number;
   costSavedAmount: number;
   costSavedPercent: number;
+}
+
+export type PlanLabel = 'baseline' | 'planA' | 'planB';
+
+export interface PlanResult {
+  planLabel: PlanLabel;
+  displayName: string;
+  result: LoanResult;
+  monthsSavedFromBaseline: number;
+  costSavedAmount: number;
+  costSavedPercent: number;
+}
+
+export interface ThreePlanComparison {
+  baseline: PlanResult;
+  planA: PlanResult;
+  planB: PlanResult;
 }

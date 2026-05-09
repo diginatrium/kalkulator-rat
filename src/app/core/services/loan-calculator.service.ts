@@ -3,7 +3,12 @@ import { LoanInput } from '../models/loan-input.model';
 import { Overpayment, OverpaymentEffect, overpaymentStepMonths } from '../models/overpayment.model';
 import { RateChange } from '../models/rate-change.model';
 import { Installment } from '../models/installment.model';
-import { ComparisonResult, LoanResult } from '../models/loan-result.model';
+import {
+  ComparisonResult,
+  LoanResult,
+  PlanResult,
+  ThreePlanComparison,
+} from '../models/loan-result.model';
 
 interface OverpaymentsBreakdown {
   totalAmount: number;
@@ -12,6 +17,35 @@ interface OverpaymentsBreakdown {
 
 @Injectable({ providedIn: 'root' })
 export class LoanCalculatorService {
+  /**
+   * Trzy-planowe porównanie: bez nadpłat / Plan A (skutek wybrany przez użytkownika)
+   * / Plan B (KEEP_TOTAL_PAYMENT na nadpłatach cyklicznych - najbardziej agresywny).
+   */
+  calculateThreePlans(
+    input: LoanInput,
+    overpayments: Overpayment[],
+    rateChanges: RateChange[],
+  ): ThreePlanComparison {
+    const baseline = this.calculateSchedule(input, [], []);
+
+    const planAOverpayments = overpayments;
+    const planA = this.calculateSchedule(input, planAOverpayments, rateChanges);
+
+    const planBOverpayments: Overpayment[] = overpayments.map((op) =>
+      op.type === 'ONE_TIME' ? op : { ...op, effect: 'KEEP_TOTAL_PAYMENT' as OverpaymentEffect },
+    );
+    const planB = this.calculateSchedule(input, planBOverpayments, rateChanges);
+
+    return {
+      baseline: this.toPlanResult('baseline', 'Bez nadpłat', baseline, baseline),
+      planA: this.toPlanResult('planA', 'Plan A', planA, baseline),
+      planB: this.toPlanResult('planB', 'Plan B', planB, baseline),
+    };
+  }
+
+  /**
+   * Zachowane dla kompatybilności starszych testów: 2-kolumnowe porównanie.
+   */
   calculateComparison(
     input: LoanInput,
     overpayments: Overpayment[],
@@ -48,6 +82,9 @@ export class LoanCalculatorService {
         totalInterest: 0,
         totalOverpayments: 0,
         actualMonths: 0,
+        averageMonthlyPayment: 0,
+        totalPaidReal: input.inflationEnabled ? 0 : undefined,
+        totalInterestReal: input.inflationEnabled ? 0 : undefined,
       };
     }
 
@@ -60,17 +97,21 @@ export class LoanCalculatorService {
     let totalCapitalRaw = 0;
     let totalInterestRaw = 0;
     let totalOverpaymentsRaw = 0;
+    let totalPaidRealRaw = 0;
+    let totalInterestRealRaw = 0;
 
     const sortedRateChanges = [...rateChanges].sort(
       (a, b) => a.fromInstallment - b.fromInstallment,
     );
 
-    // KEEP_TOTAL_PAYMENT: stała łączna kwota miesięczna (rata + nadpłata).
-    // Zapamiętujemy targetTotal per nadpłata przy pierwszej aktywacji.
     const keepTotalTargets = new Map<string, number>();
 
     let installmentNumber = 1;
     const maxIterations = input.months * 2 + 100;
+
+    const inflationMonthlyFactor = input.inflationEnabled
+      ? 1 + input.inflationRatePercent / 100 / 12
+      : 1;
 
     while (balance > 0.005 && installmentNumber <= maxIterations) {
       const rateChange = sortedRateChanges.find((rc) => rc.fromInstallment === installmentNumber);
@@ -114,20 +155,31 @@ export class LoanCalculatorService {
       totalInterestRaw += interestPart;
       totalOverpaymentsRaw += effectiveOverpayment;
 
+      const totalThisInstallment = scheduledPayment + effectiveOverpayment;
+      let realValueOfPayment: number | undefined;
+      if (input.inflationEnabled) {
+        const discount = Math.pow(inflationMonthlyFactor, installmentNumber);
+        realValueOfPayment = totalThisInstallment / discount;
+        totalPaidRealRaw += realValueOfPayment;
+        totalInterestRealRaw += interestPart / discount;
+      }
+
       const installment: Installment = {
         number: installmentNumber,
-        scheduledPayment: Math.round(scheduledPayment * 100) / 100,
-        capitalPart: Math.round(capitalPart * 100) / 100,
-        interestPart: Math.round(interestPart * 100) / 100,
-        overpayment: Math.round(effectiveOverpayment * 100) / 100,
-        remainingBalance: Math.round(balance * 100) / 100,
+        date: addMonths(input.startDate, installmentNumber - 1),
+        scheduledPayment: round2(scheduledPayment),
+        capitalPart: round2(capitalPart),
+        interestPart: round2(interestPart),
+        overpayment: round2(effectiveOverpayment),
+        remainingBalance: round2(balance),
+        realValueOfPayment:
+          realValueOfPayment !== undefined ? round2(realValueOfPayment) : undefined,
       };
       schedule.push(installment);
 
       if (effectiveOverpayment > 0) {
         const remainingAfter = input.months - installmentNumber;
         if (remainingAfter > 0) {
-          // Zarówno REDUCE_INSTALLMENT jak i KEEP_TOTAL_PAYMENT przeliczają ratę.
           if (primaryEffect === 'REDUCE_INSTALLMENT' || primaryEffect === 'KEEP_TOTAL_PAYMENT') {
             equalInstallment = this.calcEqualInstallment(
               balance,
@@ -141,14 +193,43 @@ export class LoanCalculatorService {
       installmentNumber++;
     }
 
+    const totalPaid = totalCapitalRaw + totalInterestRaw + totalOverpaymentsRaw;
+    const averageMonthlyPayment =
+      schedule.length > 0
+        ? schedule.reduce((s, i) => s + i.scheduledPayment + i.overpayment, 0) / schedule.length
+        : 0;
+
     return {
       schedule,
-      totalPaid:
-        Math.round((totalCapitalRaw + totalInterestRaw + totalOverpaymentsRaw) * 100) / 100,
-      totalCapital: Math.round(totalCapitalRaw * 100) / 100,
-      totalInterest: Math.round(totalInterestRaw * 100) / 100,
-      totalOverpayments: Math.round(totalOverpaymentsRaw * 100) / 100,
+      totalPaid: round2(totalPaid),
+      totalCapital: round2(totalCapitalRaw),
+      totalInterest: round2(totalInterestRaw),
+      totalOverpayments: round2(totalOverpaymentsRaw),
       actualMonths: schedule.length,
+      averageMonthlyPayment: round2(averageMonthlyPayment),
+      totalPaidReal: input.inflationEnabled ? round2(totalPaidRealRaw) : undefined,
+      totalInterestReal: input.inflationEnabled ? round2(totalInterestRealRaw) : undefined,
+    };
+  }
+
+  private toPlanResult(
+    planLabel: PlanResult['planLabel'],
+    displayName: string,
+    result: LoanResult,
+    baseline: LoanResult,
+  ): PlanResult {
+    const baselineCost = baseline.totalInterest + baseline.totalCapital;
+    const planCost = result.totalInterest + result.totalCapital + result.totalOverpayments;
+    const costSavedAmount = baselineCost - planCost;
+    const costSavedPercent = baselineCost > 0 ? (costSavedAmount / baselineCost) * 100 : 0;
+
+    return {
+      planLabel,
+      displayName,
+      result,
+      monthsSavedFromBaseline: baseline.actualMonths - result.actualMonths,
+      costSavedAmount: round2(costSavedAmount),
+      costSavedPercent: round2(costSavedPercent),
     };
   }
 
@@ -175,7 +256,6 @@ export class LoanCalculatorService {
 
       let amount: number;
       if (op.effect === 'KEEP_TOTAL_PAYMENT' && op.type !== 'ONE_TIME') {
-        // Przy pierwszej aktywacji zapamiętaj łączną docelową kwotę.
         if (!keepTotalTargets.has(op.id)) {
           keepTotalTargets.set(op.id, scheduledPayment + op.amount);
         }
@@ -187,7 +267,6 @@ export class LoanCalculatorService {
 
       totalAmount += amount;
       if (!foundPrimary) {
-        // KEEP_TOTAL_PAYMENT na ONE_TIME nie ma sensu - zachowaj się jak SHORTEN_PERIOD.
         primaryEffect =
           op.effect === 'KEEP_TOTAL_PAYMENT' && op.type === 'ONE_TIME'
             ? 'SHORTEN_PERIOD'
@@ -210,4 +289,13 @@ export class LoanCalculatorService {
     const step = overpaymentStepMonths(op.type);
     return step > 0 && (installmentNumber - from) % step === 0;
   }
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function addMonths(date: Date, months: number): Date {
+  const d = new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
+  return d;
 }

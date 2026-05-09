@@ -1,8 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { LoanCalculatorService } from './loan-calculator.service';
-import { LoanInput } from '../models/loan-input.model';
+import { DEFAULT_LOAN_INPUT, LoanInput } from '../models/loan-input.model';
 import { Overpayment } from '../models/overpayment.model';
 import { RateChange } from '../models/rate-change.model';
+
+function makeInput(partial: Partial<LoanInput>): LoanInput {
+  return { ...DEFAULT_LOAN_INPUT, ...partial };
+}
 
 describe('LoanCalculatorService', () => {
   let service: LoanCalculatorService;
@@ -17,12 +21,12 @@ describe('LoanCalculatorService', () => {
   });
 
   describe('raty równe bez nadpłat', () => {
-    const input: LoanInput = {
+    const input: LoanInput = makeInput({
       amount: 400000,
       months: 360,
       annualRatePercent: 7.5,
       installmentType: 'EQUAL',
-    };
+    });
 
     it('powinna wyliczyć ratę ~2796.86 zł', () => {
       const result = service.calculateSchedule(input, [], []);
@@ -55,7 +59,12 @@ describe('LoanCalculatorService', () => {
   describe('błąd zaokrąglania - totalCapital dla różnych kwot', () => {
     it('570 000 zł / 360 mc / 7.5% raty równe → totalCapital = 570 000', () => {
       const result = service.calculateSchedule(
-        { amount: 570000, months: 360, annualRatePercent: 7.5, installmentType: 'EQUAL' },
+        makeInput({
+          amount: 570000,
+          months: 360,
+          annualRatePercent: 7.5,
+          installmentType: 'EQUAL',
+        }),
         [],
         [],
       );
@@ -64,7 +73,12 @@ describe('LoanCalculatorService', () => {
 
     it('123 456,78 zł / 240 mc / 5.25% raty malejące → totalCapital = kwota', () => {
       const result = service.calculateSchedule(
-        { amount: 123456.78, months: 240, annualRatePercent: 5.25, installmentType: 'DECREASING' },
+        makeInput({
+          amount: 123456.78,
+          months: 240,
+          annualRatePercent: 5.25,
+          installmentType: 'DECREASING',
+        }),
         [],
         [],
       );
@@ -73,12 +87,12 @@ describe('LoanCalculatorService', () => {
   });
 
   describe('raty malejące bez nadpłat', () => {
-    const input: LoanInput = {
+    const input: LoanInput = makeInput({
       amount: 400000,
       months: 360,
       annualRatePercent: 7.5,
       installmentType: 'DECREASING',
-    };
+    });
 
     it('stała część kapitałowa ~1111.11 zł', () => {
       const result = service.calculateSchedule(input, [], []);
@@ -100,12 +114,12 @@ describe('LoanCalculatorService', () => {
 
   describe('oprocentowanie 0%', () => {
     it('rata = kwota / liczba rat', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 120000,
         months: 12,
         annualRatePercent: 0,
         installmentType: 'EQUAL',
-      };
+      });
       const result = service.calculateSchedule(input, [], []);
       expect(result.schedule[0].scheduledPayment).toBeCloseTo(10000, 1);
       expect(result.totalInterest).toBeCloseTo(0, 1);
@@ -114,12 +128,12 @@ describe('LoanCalculatorService', () => {
 
   describe('nadpłata jednorazowa SHORTEN_PERIOD', () => {
     it('powinna skrócić okres kredytu', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -135,12 +149,12 @@ describe('LoanCalculatorService', () => {
     });
 
     it('saldo nie może być ujemne', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -159,12 +173,12 @@ describe('LoanCalculatorService', () => {
 
   describe('nadpłata jednorazowa REDUCE_INSTALLMENT', () => {
     it('powinna zmniejszyć ratę, ale nie skrócić okresu', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -184,12 +198,12 @@ describe('LoanCalculatorService', () => {
 
   describe('nadpłata cykliczna miesięczna SHORTEN_PERIOD', () => {
     it('powinna skrócić okres gdy 1000 zł/mc od raty 1 do 60', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -207,12 +221,12 @@ describe('LoanCalculatorService', () => {
 
   describe('nadpłata KEEP_TOTAL_PAYMENT (stała łączna kwota miesięczna)', () => {
     it('łączna kwota (rata + nadpłata) pozostaje stała w każdej racie', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -233,12 +247,12 @@ describe('LoanCalculatorService', () => {
     });
 
     it('rata maleje, a nadpłata rośnie z biegiem czasu', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -258,12 +272,12 @@ describe('LoanCalculatorService', () => {
     });
 
     it('powinno skrócić okres mocniej niż REDUCE_INSTALLMENT przy tej samej startowej nadpłacie', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const reduce = service.calculateSchedule(
         input,
         [
@@ -296,12 +310,12 @@ describe('LoanCalculatorService', () => {
   });
 
   describe('nadpłata cykliczna - inne częstotliwości', () => {
-    const input: LoanInput = {
+    const input: LoanInput = makeInput({
       amount: 400000,
       months: 360,
       annualRatePercent: 7.5,
       installmentType: 'EQUAL',
-    };
+    });
 
     it('co kwartał - nadpłata aktywna w ratach 1, 4, 7, 10...', () => {
       const overpayments: Overpayment[] = [
@@ -367,12 +381,12 @@ describe('LoanCalculatorService', () => {
 
   describe('zmiana oprocentowania', () => {
     it('rata powinna zmaleć po zmianie z 7.5% na 5% od raty 60', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const rateChanges: RateChange[] = [{ id: '1', fromInstallment: 60, newAnnualRatePercent: 5 }];
       const result = service.calculateSchedule(input, [], rateChanges);
       const rateBefore = result.schedule[58].scheduledPayment;
@@ -383,12 +397,12 @@ describe('LoanCalculatorService', () => {
 
   describe('edge cases', () => {
     it('nadpłata większa niż saldo - saldo = 0', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 50000,
         months: 12,
         annualRatePercent: 5,
         installmentType: 'EQUAL',
-      };
+      });
       const overpayments: Overpayment[] = [
         {
           id: '1',
@@ -405,17 +419,165 @@ describe('LoanCalculatorService', () => {
     });
 
     it('calculateComparison zwraca baseline i modified', () => {
-      const input: LoanInput = {
+      const input: LoanInput = makeInput({
         amount: 400000,
         months: 360,
         annualRatePercent: 7.5,
         installmentType: 'EQUAL',
-      };
+      });
       const comparison = service.calculateComparison(input, [], []);
       expect(comparison.baseline).toBeDefined();
       expect(comparison.modified).toBeDefined();
       expect(comparison.monthsSaved).toBe(0);
       expect(comparison.costSavedAmount).toBeCloseTo(0, 1);
+    });
+  });
+
+  describe('daty rat', () => {
+    it('pierwsza rata ma datę startu kredytu, kolejne kolejnymi miesiącami', () => {
+      const input = makeInput({
+        amount: 100000,
+        months: 12,
+        annualRatePercent: 5,
+        installmentType: 'EQUAL',
+        startDate: new Date(2026, 0, 1),
+      });
+      const result = service.calculateSchedule(input, [], []);
+      expect(result.schedule[0].date.getFullYear()).toBe(2026);
+      expect(result.schedule[0].date.getMonth()).toBe(0);
+      expect(result.schedule[11].date.getFullYear()).toBe(2026);
+      expect(result.schedule[11].date.getMonth()).toBe(11);
+    });
+
+    it('rata #13 wpada w kolejny rok', () => {
+      const input = makeInput({
+        amount: 100000,
+        months: 24,
+        annualRatePercent: 5,
+        installmentType: 'EQUAL',
+        startDate: new Date(2026, 5, 1),
+      });
+      const result = service.calculateSchedule(input, [], []);
+      expect(result.schedule[12].date.getFullYear()).toBe(2027);
+      expect(result.schedule[12].date.getMonth()).toBe(5);
+    });
+  });
+
+  describe('korekta o inflację', () => {
+    const baseInput = {
+      amount: 400000,
+      months: 360,
+      annualRatePercent: 7.5,
+      installmentType: 'EQUAL' as const,
+    };
+
+    it('gdy inflationEnabled=false, totalPaidReal jest undefined', () => {
+      const result = service.calculateSchedule(makeInput(baseInput), [], []);
+      expect(result.totalPaidReal).toBeUndefined();
+    });
+
+    it('gdy inflationEnabled=true z 4%, totalPaidReal < totalPaid (siła nabywcza)', () => {
+      const result = service.calculateSchedule(
+        makeInput({ ...baseInput, inflationEnabled: true, inflationRatePercent: 4 }),
+        [],
+        [],
+      );
+      expect(result.totalPaidReal).toBeDefined();
+      expect(result.totalPaidReal!).toBeLessThan(result.totalPaid);
+    });
+
+    it('przy inflacji 0% (włączone) totalPaidReal ≈ totalPaid', () => {
+      const result = service.calculateSchedule(
+        makeInput({ ...baseInput, inflationEnabled: true, inflationRatePercent: 0 }),
+        [],
+        [],
+      );
+      expect(result.totalPaidReal).toBeCloseTo(result.totalPaid, 0);
+    });
+
+    it('realValueOfPayment maleje w czasie (jest mniejszy w racie 100 niż 1)', () => {
+      const result = service.calculateSchedule(
+        makeInput({ ...baseInput, inflationEnabled: true, inflationRatePercent: 4 }),
+        [],
+        [],
+      );
+      expect(result.schedule[99].realValueOfPayment!).toBeLessThan(
+        result.schedule[0].realValueOfPayment!,
+      );
+    });
+  });
+
+  describe('calculateThreePlans (3-kolumnowe porównanie)', () => {
+    const input = () =>
+      makeInput({
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      });
+
+    it('bez nadpłat - wszystkie 3 plany identyczne', () => {
+      const cmp = service.calculateThreePlans(input(), [], []);
+      expect(cmp.baseline.result.actualMonths).toBe(360);
+      expect(cmp.planA.result.actualMonths).toBe(360);
+      expect(cmp.planB.result.actualMonths).toBe(360);
+      expect(cmp.planA.monthsSavedFromBaseline).toBe(0);
+      expect(cmp.planB.monthsSavedFromBaseline).toBe(0);
+    });
+
+    it('z nadpłatą cykliczną REDUCE_INSTALLMENT - Plan B (KEEP_TOTAL) skraca okres bardziej niż Plan A', () => {
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'MONTHLY',
+          amount: 1000,
+          fromInstallment: 1,
+          effect: 'REDUCE_INSTALLMENT',
+        },
+      ];
+      const cmp = service.calculateThreePlans(input(), overpayments, []);
+      // Plan A skróci się trochę (nadpłaty w sumie zmniejszają saldo wcześniej)
+      // ale Plan B (KEEP_TOTAL) skróci się bardziej, bo nadpłaty rosną w czasie.
+      expect(cmp.planA.result.actualMonths).toBeLessThan(360);
+      expect(cmp.planB.result.actualMonths).toBeLessThan(cmp.planA.result.actualMonths);
+      expect(cmp.planB.monthsSavedFromBaseline).toBeGreaterThan(cmp.planA.monthsSavedFromBaseline);
+    });
+
+    it('Plan B nie zmienia ONE_TIME nadpłat', () => {
+      const overpayments: Overpayment[] = [
+        {
+          id: '1',
+          type: 'ONE_TIME',
+          amount: 50000,
+          fromInstallment: 12,
+          effect: 'SHORTEN_PERIOD',
+        },
+      ];
+      const cmp = service.calculateThreePlans(input(), overpayments, []);
+      expect(cmp.planA.result.actualMonths).toBe(cmp.planB.result.actualMonths);
+    });
+
+    it('displayName jest po polsku', () => {
+      const cmp = service.calculateThreePlans(input(), [], []);
+      expect(cmp.baseline.displayName).toBe('Bez nadpłat');
+      expect(cmp.planA.displayName).toBe('Plan A');
+      expect(cmp.planB.displayName).toBe('Plan B');
+    });
+  });
+
+  describe('averageMonthlyPayment', () => {
+    it('= rata dla raty równej bez nadpłat', () => {
+      const result = service.calculateSchedule(
+        makeInput({
+          amount: 400000,
+          months: 360,
+          annualRatePercent: 7.5,
+          installmentType: 'EQUAL',
+        }),
+        [],
+        [],
+      );
+      expect(result.averageMonthlyPayment).toBeCloseTo(result.schedule[0].scheduledPayment, 0);
     });
   });
 });

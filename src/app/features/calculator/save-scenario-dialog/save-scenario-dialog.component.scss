@@ -1,0 +1,50 @@
+.save-section {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--p-surface-200, #e5e7eb);
+}
+
+.empty-text {
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.scenario-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.scenario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border-bottom: 1px solid var(--p-surface-100, #f3f4f6);
+
+  &:hover {
+    background: var(--p-surface-50, #fafafa);
+  }
+}
+
+.scenario-info {
+  display: flex;
+  flex-direction: column;
+
+  .scenario-name {
+    font-weight: 600;
+  }
+
+  .scenario-date {
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color, #6b7280);
+  }
+}
+
+.scenario-actions {
+  display: flex;
+  gap: 0.25rem;
+}

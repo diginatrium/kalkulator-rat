@@ -1,24 +1,20 @@
 import { Component, computed, input } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
-import { SelectModule } from 'primeng/select';
-import { FormsModule } from '@angular/forms';
 import { LoanResult } from '../../../core/models/loan-result.model';
 
 @Component({
   selector: 'app-structure-chart',
   templateUrl: './structure-chart.component.html',
   styleUrl: './structure-chart.component.scss',
-  imports: [ChartModule, CardModule, SelectModule, FormsModule],
+  imports: [ChartModule, CardModule],
 })
 export class StructureChartComponent {
   result = input.required<LoanResult>();
 
-  selectedView: 'modified' | 'baseline' = 'modified';
-
   chartData = computed(() => {
     const schedule = this.result().schedule;
-    const step = Math.ceil(schedule.length / 60);
+    const step = Math.max(1, Math.ceil(schedule.length / 60));
 
     const labels: string[] = [];
     const capitalData: number[] = [];

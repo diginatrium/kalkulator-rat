@@ -3,10 +3,23 @@
   flex-direction: column;
 }
 
-:host ::ng-deep .p-inputnumber {
-  width: 100%;
+.inflation-row {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--p-surface-50, #fafafa);
+  border: 1px solid var(--p-surface-200, #e5e7eb);
 }
 
-:host ::ng-deep .p-inputnumber-input {
-  width: 100%;
+.errors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+:host ::ng-deep {
+  .p-inputnumber,
+  .p-inputnumber-input,
+  .p-datepicker {
+    width: 100%;
+  }
 }

@@ -1,14 +1,23 @@
 <p-toast />
 
 <div class="page-container">
-  <header class="page-header">
+  <header class="page-header print-only-block">
     <h1>Kalkulator rat kredytowych</h1>
     <p class="subtitle">Oblicz harmonogram spłaty i sprawdź wpływ nadpłat na Twój kredyt</p>
   </header>
 
+  <app-toolbar
+    class="no-print"
+    [exportingPdf]="exportingPdf()"
+    [formInvalid]="isFormInvalid()"
+    [shareUrl]="shareUrl()"
+    (openSaveDialog)="openSaveDialog()"
+    (exportPdf)="exportPdf()"
+    (exportCsv)="exportCsv()"
+  />
+
   <div class="main-grid">
-    <!-- Kolumna lewa: formularze -->
-    <aside class="forms-column">
+    <aside class="forms-column no-print">
       <app-loan-form [loanInput]="loanInput()" (loanInputChange)="loanInput.set($event)" />
 
       <app-overpayments-form
@@ -20,31 +29,37 @@
         [rateChanges]="rateChanges()"
         (rateChangesChange)="rateChanges.set($event)"
       />
+
+      <app-budget-form
+        [budget]="budget()"
+        (budgetChange)="budget.set($event)"
+        [averageMonthlyPayment]="comparison().planA.result.averageMonthlyPayment"
+      />
     </aside>
 
-    <!-- Kolumna prawa: wyniki -->
     <section class="results-column">
-      <app-summary [comparison]="comparison()" />
+      <app-three-column-summary
+        [comparison]="comparison()"
+        [inflationEnabled]="loanInput().inflationEnabled"
+      />
 
-      <app-balance-chart [baseline]="comparison().baseline" [modified]="comparison().modified" />
+      <app-balance-chart class="no-print" [comparison]="comparison()" />
 
-      <app-structure-chart [result]="comparison().modified" />
+      <app-structure-chart class="no-print" [result]="comparison().planA.result" />
 
-      <div class="export-section">
-        <p-button
-          label="Eksportuj do PDF"
-          icon="pi pi-file-pdf"
-          severity="help"
-          [loading]="exportingPdf()"
-          (onClick)="exportPdf()"
-        />
-      </div>
+      <app-what-if-table class="no-print" [loanInput]="loanInput()" />
     </section>
   </div>
 
-  <!-- Harmonogram - pełna szerokość -->
   <app-schedule-table
-    [baselineSchedule]="comparison().baseline.schedule"
-    [modifiedSchedule]="comparison().modified.schedule"
+    [comparison]="comparison()"
+    [inflationEnabled]="loanInput().inflationEnabled"
   />
 </div>
+
+<app-save-scenario-dialog
+  [visible]="saveDialogVisible()"
+  (visibleChange)="saveDialogVisible.set($event)"
+  [currentState]="appState()"
+  (loadScenario)="applyState($event)"
+/>
