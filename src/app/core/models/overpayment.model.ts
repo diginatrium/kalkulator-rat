@@ -16,9 +16,12 @@ export function overpaymentStepMonths(type: OverpaymentType): number {
   }
 }
 
+export type OverpaymentAmountMode = 'surplus' | 'total';
+
 export interface Overpayment {
   id: string;
   type: OverpaymentType;
+  amountMode: OverpaymentAmountMode;
   amount: number;
   fromInstallment: number;
   toInstallment?: number;

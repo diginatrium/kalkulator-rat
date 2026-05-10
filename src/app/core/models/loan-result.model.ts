@@ -6,6 +6,8 @@ export interface LoanResult {
   totalCapital: number;
   totalInterest: number;
   totalOverpayments: number;
+  totalProwizja: number;
+  totalOvpCommission: number;
   actualMonths: number;
   averageMonthlyPayment: number;
   totalPaidReal?: number;

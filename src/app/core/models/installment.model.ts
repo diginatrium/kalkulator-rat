@@ -6,5 +6,6 @@ export interface Installment {
   interestPart: number;
   overpayment: number;
   remainingBalance: number;
+  laczneKoszty: number;
   realValueOfPayment?: number;
 }
