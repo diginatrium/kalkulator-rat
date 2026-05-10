@@ -7,6 +7,7 @@ import { SliderModule } from 'primeng/slider';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+import { ChartModule } from 'primeng/chart';
 import { LoanInput } from '../../../core/models/loan-input.model';
 import { Overpayment, OverpaymentAmountMode } from '../../../core/models/overpayment.model';
 import { LoanCalculatorService } from '../../../core/services/loan-calculator.service';
@@ -36,6 +37,7 @@ interface WhatIfRow {
     InputNumberModule,
     ButtonModule,
     TooltipModule,
+    ChartModule,
     MonthsToYearsPipe,
     EducationalTooltipComponent,
   ],
@@ -111,4 +113,66 @@ export class WhatIfTableComponent {
     this.amountMode.set(mode);
     this.customAmount.set(this.customDefault());
   }
+
+  /** Sorted (kwota, %oszczędności) including custom row, used for the visualization. */
+  chartData = computed(() => {
+    const sorted = [...this.rows()].sort((a, b) => a.amount - b.amount);
+    const labels = sorted.map((r) => r.amount);
+    const data = sorted.map((r) => Number(r.costSavedPercent.toFixed(2)));
+    const pointBg = sorted.map((r) =>
+      r.isCustom ? 'rgba(196, 154, 60, 0.95)' : 'rgba(26, 60, 110, 0.85)',
+    );
+    const pointRadius = sorted.map((r) => (r.isCustom ? 7 : 5));
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Oszczędność (%)',
+          data,
+          borderColor: 'rgba(26, 60, 110, 0.85)',
+          backgroundColor: 'rgba(26, 60, 110, 0.12)',
+          fill: true,
+          tension: 0.25,
+          pointBackgroundColor: pointBg,
+          pointBorderColor: pointBg,
+          pointRadius,
+          pointHoverRadius: pointRadius.map((r) => r + 2),
+        },
+      ],
+    };
+  });
+
+  chartOptions = computed(() => {
+    const xLabel =
+      this.amountMode() === 'total' ? 'Łączna wpłata (zł/mc)' : 'Kwota nadpłaty (zł/mc)';
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items: { label: string }[]) => `${items[0].label} zł`,
+            label: (ctx: { raw: number }) => `Oszczędność: ${ctx.raw.toFixed(2)} %`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: xLabel },
+          ticks: {
+            callback: (_v: number, i: number, arr: { value: number }[]) =>
+              arr[i].value.toLocaleString('pl-PL', { maximumFractionDigits: 0 }),
+          },
+        },
+        y: {
+          title: { display: true, text: 'Oszczędność odsetek (%)' },
+          beginAtZero: true,
+          ticks: {
+            callback: (v: number) => `${v.toFixed(0)}%`,
+          },
+        },
+      },
+    };
+  });
 }
