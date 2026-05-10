@@ -42,3 +42,13 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Claude Code
+.claude/settings.local.json
+.agents/handoffs/*
+!.agents/handoffs/.gitkeep
+
+# NTFS junctions (content tracked via .agents/ instead)
+.claude/agents
+.claude/skills
+.claude/handoffs
