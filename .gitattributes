@@ -1,0 +1,29 @@
+# Auto-detect text files and normalize line endings to LF in the repo.
+# Working copy on Windows still gets CRLF if core.autocrlf=true (default).
+* text=auto
+
+# Explicit text files
+*.ts        text
+*.html      text
+*.scss      text
+*.css       text
+*.md        text
+*.json      text
+*.js        text
+*.mjs       text
+*.cjs       text
+*.yml       text
+*.yaml      text
+*.svg       text
+
+# Binary files — never transform
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.ttf       binary
+*.woff      binary
+*.woff2     binary
+*.zip       binary
