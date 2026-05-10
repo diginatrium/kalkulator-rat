@@ -56,3 +56,4 @@ Thumbs.db
 # Playwright smoke test artifacts (local-only)
 .playwright-mcp/
 smoke-*.png
+ref-*.png
