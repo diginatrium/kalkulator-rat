@@ -32,6 +32,10 @@ jobs:
         run: npm run build -- --base-href=/kalkulator-rat/
 
       - name: Deploy to GitHub Pages
-        run: npx angular-cli-ghpages --dir=dist/kalkulator-rat/browser
+        run: |
+          npx angular-cli-ghpages \
+            --dir=dist/kalkulator-rat/browser \
+            --name "github-actions[bot]" \
+            --email "41898282+github-actions[bot]@users.noreply.github.com"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
