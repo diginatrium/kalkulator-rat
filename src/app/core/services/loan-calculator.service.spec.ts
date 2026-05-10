@@ -138,6 +138,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'ONE_TIME',
+          amountMode: 'surplus',
           amount: 100000,
           fromInstallment: 12,
           effect: 'SHORTEN_PERIOD',
@@ -159,6 +160,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'ONE_TIME',
+          amountMode: 'surplus',
           amount: 100000,
           fromInstallment: 12,
           effect: 'SHORTEN_PERIOD',
@@ -183,6 +185,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'ONE_TIME',
+          amountMode: 'surplus',
           amount: 100000,
           fromInstallment: 12,
           effect: 'REDUCE_INSTALLMENT',
@@ -208,6 +211,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount: 1000,
           fromInstallment: 1,
           toInstallment: 60,
@@ -231,6 +235,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount: 1000,
           fromInstallment: 1,
           effect: 'KEEP_TOTAL_PAYMENT',
@@ -257,6 +262,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount: 1000,
           fromInstallment: 1,
           effect: 'KEEP_TOTAL_PAYMENT',
@@ -284,6 +290,7 @@ describe('LoanCalculatorService', () => {
           {
             id: '1',
             type: 'MONTHLY',
+            amountMode: 'surplus',
             amount: 1000,
             fromInstallment: 1,
             effect: 'REDUCE_INSTALLMENT',
@@ -297,6 +304,7 @@ describe('LoanCalculatorService', () => {
           {
             id: '1',
             type: 'MONTHLY',
+            amountMode: 'surplus',
             amount: 1000,
             fromInstallment: 1,
             effect: 'KEEP_TOTAL_PAYMENT',
@@ -319,7 +327,14 @@ describe('LoanCalculatorService', () => {
 
     it('co kwartał - nadpłata aktywna w ratach 1, 4, 7, 10...', () => {
       const overpayments: Overpayment[] = [
-        { id: '1', type: 'QUARTERLY', amount: 5000, fromInstallment: 1, effect: 'SHORTEN_PERIOD' },
+        {
+          id: '1',
+          type: 'QUARTERLY',
+          amountMode: 'surplus',
+          amount: 5000,
+          fromInstallment: 1,
+          effect: 'SHORTEN_PERIOD',
+        },
       ];
       const result = service.calculateSchedule(input, overpayments, []);
       expect(result.schedule[0].overpayment).toBeCloseTo(5000, 1);
@@ -334,6 +349,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'SEMIANNUAL',
+          amountMode: 'surplus',
           amount: 10000,
           fromInstallment: 1,
           effect: 'SHORTEN_PERIOD',
@@ -348,7 +364,14 @@ describe('LoanCalculatorService', () => {
 
     it('co rok - nadpłata co 12 rat skraca okres', () => {
       const overpayments: Overpayment[] = [
-        { id: '1', type: 'ANNUAL', amount: 20000, fromInstallment: 12, effect: 'SHORTEN_PERIOD' },
+        {
+          id: '1',
+          type: 'ANNUAL',
+          amountMode: 'surplus',
+          amount: 20000,
+          fromInstallment: 12,
+          effect: 'SHORTEN_PERIOD',
+        },
       ];
       const result = service.calculateSchedule(input, overpayments, []);
       expect(result.actualMonths).toBeLessThan(360);
@@ -362,6 +385,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'QUARTERLY',
+          amountMode: 'surplus',
           amount: 5000,
           fromInstallment: 1,
           toInstallment: 12,
@@ -407,6 +431,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'ONE_TIME',
+          amountMode: 'surplus',
           amount: 1000000,
           fromInstallment: 1,
           effect: 'SHORTEN_PERIOD',
@@ -530,6 +555,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount: 1000,
           fromInstallment: 1,
           effect: 'REDUCE_INSTALLMENT',
@@ -548,6 +574,7 @@ describe('LoanCalculatorService', () => {
         {
           id: '1',
           type: 'ONE_TIME',
+          amountMode: 'surplus',
           amount: 50000,
           fromInstallment: 12,
           effect: 'SHORTEN_PERIOD',
@@ -578,6 +605,166 @@ describe('LoanCalculatorService', () => {
         [],
       );
       expect(result.averageMonthlyPayment).toBeCloseTo(result.schedule[0].scheduledPayment, 0);
+    });
+  });
+
+  describe('prowizja za udzielenie', () => {
+    const baseInput = (): LoanInput =>
+      makeInput({ amount: 100000, months: 12, annualRatePercent: 12, installmentType: 'EQUAL' });
+
+    it('liczy procentową prowizję od kwoty kredytu', () => {
+      const result = service.calculateSchedule(
+        { ...baseInput(), prowizja: 2, prowizjaType: 'percent' },
+        [],
+        [],
+      );
+      expect(result.totalProwizja).toBeCloseTo(2000, 0);
+    });
+
+    it('przepisuje prowizję kwotową bez przeliczeń', () => {
+      const result = service.calculateSchedule(
+        { ...baseInput(), prowizja: 1500, prowizjaType: 'amount' },
+        [],
+        [],
+      );
+      expect(result.totalProwizja).toBeCloseTo(1500, 0);
+    });
+
+    it('totalProwizja = 0 gdy prowizja = 0', () => {
+      const result = service.calculateSchedule(baseInput(), [], []);
+      expect(result.totalProwizja).toBe(0);
+    });
+  });
+
+  describe('prowizja od nadpłat', () => {
+    const baseInput = (): LoanInput =>
+      makeInput({ amount: 100000, months: 12, annualRatePercent: 12, installmentType: 'EQUAL' });
+
+    it('nalicza prowizję od pojedynczej nadpłaty', () => {
+      const op: Overpayment = {
+        id: '1',
+        type: 'ONE_TIME',
+        amountMode: 'surplus',
+        amount: 10000,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule({ ...baseInput(), prowizjaNadplat: 2 }, [op], []);
+      expect(result.totalOvpCommission).toBeCloseTo(200, 0);
+    });
+
+    it('totalOvpCommission = 0 gdy prowizjaNadplat = 0', () => {
+      const op: Overpayment = {
+        id: '1',
+        type: 'ONE_TIME',
+        amountMode: 'surplus',
+        amount: 10000,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule(baseInput(), [op], []);
+      expect(result.totalOvpCommission).toBe(0);
+    });
+  });
+
+  describe('laczneKoszty', () => {
+    const baseInput = (): LoanInput =>
+      makeInput({ amount: 100000, months: 12, annualRatePercent: 12, installmentType: 'EQUAL' });
+
+    it('pierwsza rata: laczneKoszty ≈ interestPart (bez prowizji)', () => {
+      const result = service.calculateSchedule(baseInput(), [], []);
+      const first = result.schedule[0];
+      expect(first.laczneKoszty).toBeCloseTo(first.interestPart, 2);
+    });
+
+    it('jest monotonicznie rosnące', () => {
+      const result = service.calculateSchedule(baseInput(), [], []);
+      for (let i = 1; i < result.schedule.length; i++) {
+        expect(result.schedule[i].laczneKoszty).toBeGreaterThan(
+          result.schedule[i - 1].laczneKoszty,
+        );
+      }
+    });
+
+    it('ostatnia laczneKoszty ≈ totalInterest gdy nie ma nadpłat ani prowizji', () => {
+      const result = service.calculateSchedule(baseInput(), [], []);
+      const last = result.schedule[result.schedule.length - 1];
+      expect(last.laczneKoszty).toBeCloseTo(result.totalInterest, 1);
+    });
+
+    it('startuje od prowizjaZl gdy prowizja > 0', () => {
+      const result = service.calculateSchedule(
+        { ...baseInput(), prowizja: 1000, prowizjaType: 'amount' },
+        [],
+        [],
+      );
+      const first = result.schedule[0];
+      expect(first.laczneKoszty).toBeCloseTo(1000 + first.interestPart, 2);
+    });
+  });
+
+  describe('amountMode w nadpłatach', () => {
+    const input = (): LoanInput =>
+      makeInput({ amount: 400000, months: 360, annualRatePercent: 7.5, installmentType: 'EQUAL' });
+
+    it("KEEP_TOTAL_PAYMENT z amountMode='surplus' używa scheduledPayment + amount jako target", () => {
+      const op: Overpayment = {
+        id: '1',
+        type: 'MONTHLY',
+        amountMode: 'surplus',
+        amount: 1000,
+        fromInstallment: 1,
+        effect: 'KEEP_TOTAL_PAYMENT',
+      };
+      const result = service.calculateSchedule(input(), [op], []);
+      const first = result.schedule[0];
+      // surplus: scheduled + 1000 = target
+      const expectedTotal = first.scheduledPayment + first.overpayment;
+      const result2 = service.calculateSchedule(input(), [], []);
+      expect(expectedTotal).toBeCloseTo(result2.schedule[0].scheduledPayment + 1000, 0);
+    });
+
+    it("KEEP_TOTAL_PAYMENT z amountMode='total' używa amount jako target", () => {
+      const target = 5000;
+      const op: Overpayment = {
+        id: '1',
+        type: 'MONTHLY',
+        amountMode: 'total',
+        amount: target,
+        fromInstallment: 1,
+        effect: 'KEEP_TOTAL_PAYMENT',
+      };
+      const result = service.calculateSchedule(input(), [op], []);
+      const first = result.schedule[0];
+      expect(first.scheduledPayment + first.overpayment).toBeCloseTo(target, 0);
+    });
+
+    it("SHORTEN_PERIOD z amountMode='total' liczy nadpłatę = max(0, amount - scheduledPayment)", () => {
+      const baseline = service.calculateSchedule(input(), [], []);
+      const totalTarget = baseline.schedule[0].scheduledPayment + 500;
+      const op: Overpayment = {
+        id: '1',
+        type: 'ONE_TIME',
+        amountMode: 'total',
+        amount: totalTarget,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule(input(), [op], []);
+      expect(result.schedule[0].overpayment).toBeCloseTo(500, 0);
+    });
+
+    it("SHORTEN_PERIOD z amountMode='surplus' używa amount jako nadpłatę", () => {
+      const op: Overpayment = {
+        id: '1',
+        type: 'ONE_TIME',
+        amountMode: 'surplus',
+        amount: 500,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule(input(), [op], []);
+      expect(result.schedule[0].overpayment).toBeCloseTo(500, 0);
     });
   });
 });

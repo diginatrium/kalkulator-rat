@@ -19,6 +19,7 @@ describe('UrlStateService', () => {
         {
           id: 'a',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount: 1000,
           fromInstallment: 1,
           effect: 'KEEP_TOTAL_PAYMENT',
@@ -49,6 +50,9 @@ describe('UrlStateService', () => {
 
   it('encoded length is reasonable (LZ compression works)', () => {
     const encoded = service.encode(sampleState());
-    expect(encoded.length).toBeLessThan(500);
+    // Threshold raised from 500 → 700 after merging master's fields into
+    // LoanInput (prowizja, prowizjaType, prowizjaNadplat) and Overpayment
+    // (amountMode). LZ-compressed JSON of the merged AppState is ~550 chars.
+    expect(encoded.length).toBeLessThan(700);
   });
 });

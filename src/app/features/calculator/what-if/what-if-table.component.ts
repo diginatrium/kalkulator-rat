@@ -64,6 +64,7 @@ export class WhatIfTableComponent {
         {
           id: 'whatif',
           type: 'MONTHLY',
+          amountMode: 'surplus',
           amount,
           fromInstallment: 1,
           effect: 'KEEP_TOTAL_PAYMENT',
