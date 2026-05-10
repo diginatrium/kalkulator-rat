@@ -1,5 +1,20 @@
 <p-card header="Nadpłaty kredytu">
   <div class="flex flex-column gap-3">
+    <div class="field mb-2">
+      <label for="prowizja-nadplat" class="block font-semibold mb-2"> Prowizja od nadpłat </label>
+      <p-inputNumber
+        inputId="prowizja-nadplat"
+        [ngModel]="prowizjaNadplat()"
+        (ngModelChange)="prowizjaNadplatChange.emit($event ?? 0)"
+        suffix=" %"
+        [min]="0"
+        [max]="10"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        styleClass="w-full"
+      />
+    </div>
+
     @for (op of overpayments(); track op.id) {
       <div class="overpayment-row p-3 border-round border-1 surface-border">
         <div class="grid formgrid">
@@ -28,7 +43,29 @@
           </div>
 
           <div class="field col-12">
-            <label class="block text-sm font-semibold mb-1">Kwota</label>
+            <div class="flex align-items-center justify-content-between mb-1">
+              <label class="block text-sm font-semibold">
+                {{ op.amountMode === 'total' ? 'Łączna kwota wpłaty' : 'Kwota nadpłaty' }}
+              </label>
+              <div class="amount-mode-toggle flex gap-1">
+                <p-button
+                  label="Nadwyżka"
+                  size="small"
+                  [outlined]="op.amountMode !== 'surplus'"
+                  pTooltip="Wpisz kwotę nadpłaty ponad ratę"
+                  tooltipPosition="top"
+                  (onClick)="onAmountModeChange(op.id, 'surplus')"
+                />
+                <p-button
+                  label="Łączna wpłata"
+                  size="small"
+                  [outlined]="op.amountMode !== 'total'"
+                  pTooltip="Wpisz całkowitą kwotę przelewu — kalkulator obliczy nadpłatę"
+                  tooltipPosition="top"
+                  (onClick)="onAmountModeChange(op.id, 'total')"
+                />
+              </div>
+            </div>
             <p-inputNumber
               [ngModel]="op.amount"
               (ngModelChange)="update(op.id, { amount: $event ?? 0 })"
@@ -37,6 +74,9 @@
               [maxFractionDigits]="2"
               locale="pl-PL"
               styleClass="w-full"
+              [placeholder]="
+                op.amountMode === 'total' ? 'np. 3 500 zł (rata + nadpłata)' : 'np. 500 zł nadpłaty'
+              "
             />
           </div>
 

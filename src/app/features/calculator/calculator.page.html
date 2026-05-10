@@ -23,6 +23,8 @@
       <app-overpayments-form
         [overpayments]="overpayments()"
         (overpaymentsChange)="overpayments.set($event)"
+        [prowizjaNadplat]="loanInput().prowizjaNadplat"
+        (prowizjaNadplatChange)="onProwizjaNadplatChange($event)"
       />
 
       <app-rate-changes-form

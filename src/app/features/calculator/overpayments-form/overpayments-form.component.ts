@@ -7,6 +7,7 @@ import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import {
   Overpayment,
+  OverpaymentAmountMode,
   OverpaymentEffect,
   OverpaymentType,
 } from '../../../core/models/overpayment.model';
@@ -20,6 +21,9 @@ import {
 export class OverpaymentsFormComponent {
   overpayments = input.required<Overpayment[]>();
   overpaymentsChange = output<Overpayment[]>();
+
+  prowizjaNadplat = input.required<number>();
+  prowizjaNadplatChange = output<number>();
 
   readonly typeOptions: { label: string; value: OverpaymentType }[] = [
     { label: 'Jednorazowo', value: 'ONE_TIME' },
@@ -39,6 +43,7 @@ export class OverpaymentsFormComponent {
     const next: Overpayment = {
       id: crypto.randomUUID(),
       type: 'ONE_TIME',
+      amountMode: 'surplus',
       amount: 10000,
       fromInstallment: 1,
       toInstallment: undefined,
@@ -49,6 +54,10 @@ export class OverpaymentsFormComponent {
 
   removeOverpayment(id: string): void {
     this.overpaymentsChange.emit(this.overpayments().filter((op) => op.id !== id));
+  }
+
+  onAmountModeChange(id: string, mode: OverpaymentAmountMode): void {
+    this.update(id, { amountMode: mode, amount: 0 });
   }
 
   update(id: string, partial: Partial<Overpayment>): void {

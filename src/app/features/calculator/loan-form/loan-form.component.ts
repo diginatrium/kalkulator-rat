@@ -4,9 +4,10 @@ import { CardModule } from 'primeng/card';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageModule } from 'primeng/message';
-import { InstallmentType, LoanInput } from '../../../core/models/loan-input.model';
+import { InstallmentType, LoanInput, ProwizjaType } from '../../../core/models/loan-input.model';
 import { LoanSliderInputComponent } from '../../../shared/loan-slider-input.component';
 import { EducationalTooltipComponent } from '../../../shared/educational-tooltip.component';
 
@@ -20,6 +21,7 @@ import { EducationalTooltipComponent } from '../../../shared/educational-tooltip
     RadioButtonModule,
     CheckboxModule,
     InputNumberModule,
+    ButtonModule,
     DatePickerModule,
     MessageModule,
     LoanSliderInputComponent,
@@ -83,6 +85,14 @@ export class LoanFormComponent {
 
   onInflationRateChange(inflationRatePercent: number | null): void {
     this.emit({ inflationRatePercent: inflationRatePercent ?? 0 });
+  }
+
+  onProwizjaChange(value: number | null): void {
+    this.emit({ prowizja: value ?? 0 });
+  }
+
+  onProwizjaTypeChange(type: ProwizjaType): void {
+    this.emit({ prowizjaType: type, prowizja: 0 });
   }
 
   private emit(partial: Partial<LoanInput>): void {

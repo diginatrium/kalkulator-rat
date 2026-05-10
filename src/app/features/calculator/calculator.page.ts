@@ -128,6 +128,10 @@ export class CalculatorPage implements OnInit {
     this.budget.set(state.budget);
   }
 
+  onProwizjaNadplatChange(value: number): void {
+    this.loanInput.set({ ...this.loanInput(), prowizjaNadplat: value });
+  }
+
   openSaveDialog(): void {
     this.saveDialogVisible.set(true);
   }
