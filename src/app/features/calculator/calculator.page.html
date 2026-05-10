@@ -1,11 +1,21 @@
 <p-toast />
 
-<div class="page-container">
-  <header class="page-header print-only-block">
-    <h1>Kalkulator rat kredytowych</h1>
-    <p class="subtitle">Oblicz harmonogram spłaty i sprawdź wpływ nadpłat na Twój kredyt</p>
-  </header>
+<!-- Banking Masthead — full-width header bar -->
+<div class="banking-masthead">
+  <div class="banking-masthead__inner">
+    <div class="banking-masthead__brand">
+      <div class="banking-masthead__rule"></div>
+      <div>
+        <h1 class="banking-masthead__title">Kalkulator Rat Kredytowych</h1>
+        <p class="banking-masthead__subtitle">Harmonogram spłaty &amp; analiza nadpłat</p>
+      </div>
+    </div>
+    <div class="banking-masthead__badge">Narzędzie finansowe</div>
+  </div>
+  <div class="banking-masthead__accent"></div>
+</div>
 
+<div class="page-container">
   <app-toolbar
     class="no-print"
     [exportingPdf]="exportingPdf()"
