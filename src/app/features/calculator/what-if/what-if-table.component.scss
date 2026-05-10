@@ -1,0 +1,54 @@
+.custom-row {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--p-blue-50, #eff6ff);
+  border: 1px solid var(--p-blue-200, #bfdbfe);
+}
+
+.custom-controls {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1rem;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+:host ::ng-deep {
+  .custom-input {
+    width: 100%;
+  }
+  .custom-input .p-inputnumber {
+    width: 100%;
+  }
+  .custom-slider {
+    flex: 1;
+  }
+}
+
+tr.custom-row td {
+  background: var(--p-blue-50, #eff6ff) !important;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--p-text-muted-color, #6b7280);
+  font-weight: 400;
+  font-size: 0.85em;
+  margin-left: 0.25rem;
+}
+
+.positive {
+  color: var(--p-green-600, #16a34a);
+  font-variant-numeric: tabular-nums;
+}
+
+.text-right {
+  text-align: right !important;
+}
+.text-center {
+  text-align: center !important;
+}

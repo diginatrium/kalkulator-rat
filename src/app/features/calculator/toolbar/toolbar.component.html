@@ -1,0 +1,60 @@
+<div class="toolbar">
+  <div class="toolbar-section">
+    <p-button
+      [icon]="isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+      [outlined]="true"
+      size="small"
+      (onClick)="toggleTheme()"
+      [pTooltip]="isDark() ? 'Tryb jasny' : 'Tryb ciemny'"
+    />
+  </div>
+
+  <div class="toolbar-section">
+    <p-button
+      label="Zapisz / Wczytaj"
+      icon="pi pi-folder"
+      size="small"
+      [outlined]="true"
+      (onClick)="openSaveDialog.emit()"
+      pTooltip="Zarządzaj zapisanymi scenariuszami"
+    />
+    <p-button
+      label="Skopiuj link"
+      icon="pi pi-share-alt"
+      size="small"
+      [outlined]="true"
+      (onClick)="copyShareLink()"
+      pTooltip="Skopiuj link z aktualnym scenariuszem (możesz go wysłać znajomym)"
+    />
+  </div>
+
+  <div class="toolbar-section">
+    <p-button
+      label="PDF"
+      icon="pi pi-file-pdf"
+      size="small"
+      severity="help"
+      [loading]="exportingPdf()"
+      [disabled]="formInvalid()"
+      (onClick)="exportPdf.emit()"
+      pTooltip="Eksportuj podsumowanie + harmonogram do PDF"
+    />
+    <p-button
+      label="CSV"
+      icon="pi pi-file-excel"
+      size="small"
+      severity="success"
+      [disabled]="formInvalid()"
+      (onClick)="exportCsv.emit()"
+      pTooltip="Eksportuj harmonogram do CSV (otwiera się w Excelu)"
+    />
+    <p-button
+      label="Drukuj"
+      icon="pi pi-print"
+      size="small"
+      [outlined]="true"
+      (onClick)="print()"
+      pTooltip="Drukuj harmonogram"
+    />
+  </div>
+</div>

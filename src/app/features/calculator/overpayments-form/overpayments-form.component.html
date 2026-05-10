@@ -1,0 +1,146 @@
+<p-card header="Nadpłaty kredytu">
+  <div class="flex flex-column gap-3">
+    <div class="field mb-2">
+      <label for="prowizja-nadplat" class="block font-semibold mb-2"> Prowizja od nadpłat </label>
+      <p-inputNumber
+        inputId="prowizja-nadplat"
+        [ngModel]="prowizjaNadplat()"
+        (ngModelChange)="prowizjaNadplatChange.emit($event ?? 0)"
+        suffix=" %"
+        [min]="0"
+        [max]="10"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        styleClass="w-full"
+      />
+    </div>
+
+    @for (op of overpayments(); track op.id) {
+      <div class="overpayment-row p-3 border-round border-1 surface-border">
+        <div class="grid formgrid">
+          <div class="field col-12">
+            <label class="block text-sm font-semibold mb-1">Typ nadpłaty</label>
+            <p-select
+              [options]="typeOptions"
+              [ngModel]="op.type"
+              (ngModelChange)="update(op.id, { type: $event })"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="field col-12">
+            <label class="block text-sm font-semibold mb-1">Skutek</label>
+            <p-select
+              [options]="effectOptions"
+              [ngModel]="op.effect"
+              (ngModelChange)="update(op.id, { effect: $event })"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="field col-12">
+            <div class="flex align-items-center justify-content-between mb-1">
+              <label class="block text-sm font-semibold">
+                {{ op.amountMode === 'total' ? 'Łączna kwota wpłaty' : 'Kwota nadpłaty' }}
+              </label>
+              <div class="amount-mode-toggle flex gap-1">
+                <p-button
+                  label="Nadwyżka"
+                  size="small"
+                  [outlined]="op.amountMode !== 'surplus'"
+                  pTooltip="Wpisz kwotę nadpłaty ponad ratę"
+                  tooltipPosition="top"
+                  (onClick)="onAmountModeChange(op.id, 'surplus')"
+                />
+                <p-button
+                  label="Łączna wpłata"
+                  size="small"
+                  [outlined]="op.amountMode !== 'total'"
+                  pTooltip="Wpisz całkowitą kwotę przelewu — kalkulator obliczy nadpłatę"
+                  tooltipPosition="top"
+                  (onClick)="onAmountModeChange(op.id, 'total')"
+                />
+              </div>
+            </div>
+            <p-inputNumber
+              [ngModel]="op.amount"
+              (ngModelChange)="update(op.id, { amount: $event ?? 0 })"
+              suffix=" zł"
+              [min]="0"
+              [maxFractionDigits]="2"
+              locale="pl-PL"
+              styleClass="w-full"
+              [placeholder]="
+                op.amountMode === 'total' ? 'np. 3 500 zł (rata + nadpłata)' : 'np. 500 zł nadpłaty'
+              "
+            />
+            @if (isTotalBelowInstallment(op)) {
+              <p-message
+                severity="warn"
+                styleClass="mt-2 w-full"
+                [text]="
+                  'Łączna wpłata jest mniejsza niż pierwsza rata (~' +
+                  (firstScheduledPayment() | number: '1.0-0') +
+                  ' zł). Nadpłata wyniesie 0 zł — zwiększ kwotę powyżej raty lub przełącz na tryb ' +
+                  'Nadwyżka.'
+                "
+              />
+            }
+          </div>
+
+          <div class="field col-6">
+            <label class="block text-sm font-semibold mb-1">Od raty nr</label>
+            <p-inputNumber
+              [ngModel]="op.fromInstallment"
+              (ngModelChange)="update(op.id, { fromInstallment: $event ?? 1 })"
+              [min]="1"
+              [maxFractionDigits]="0"
+              styleClass="w-full"
+            />
+          </div>
+
+          @if (op.type !== 'ONE_TIME') {
+            <div class="field col-6">
+              <label
+                class="block text-sm font-semibold mb-1"
+                pTooltip="Pozostaw puste, aby nadpłacać do końca kredytu"
+                tooltipPosition="top"
+              >
+                Do raty nr
+              </label>
+              <p-inputNumber
+                [ngModel]="op.toInstallment ?? null"
+                (ngModelChange)="update(op.id, { toInstallment: $event ?? undefined })"
+                [min]="1"
+                [maxFractionDigits]="0"
+                placeholder="koniec"
+                styleClass="w-full"
+              />
+            </div>
+          }
+
+          <div class="col-12 flex justify-content-end">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              (onClick)="removeOverpayment(op.id)"
+              pTooltip="Usuń nadpłatę"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <p-button
+      label="Dodaj nadpłatę"
+      icon="pi pi-plus"
+      [outlined]="true"
+      (onClick)="addOverpayment()"
+    />
+  </div>
+</p-card>

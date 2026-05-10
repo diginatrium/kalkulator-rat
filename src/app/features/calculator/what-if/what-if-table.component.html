@@ -1,0 +1,61 @@
+<p-card>
+  <ng-template pTemplate="title">
+    <span>Ile nadpłacać?</span>
+    <app-edu-tip
+      tip="Symulacja - dla każdej kwoty nadpłaty co miesiąc (z efektem 'Stała łączna kwota') pokazujemy o ile skróci się kredyt i ile zaoszczędzisz. Bazuje na aktualnych parametrach kredytu (bez Twoich nadpłat)."
+    />
+  </ng-template>
+
+  <div class="custom-row">
+    <label class="font-semibold mb-2 block">Twoja kwota miesięczna</label>
+    <div class="custom-controls">
+      <p-inputNumber
+        [ngModel]="customAmount()"
+        (ngModelChange)="onCustomChange($event)"
+        suffix=" zł"
+        [min]="0"
+        [max]="20000"
+        [maxFractionDigits]="0"
+        locale="pl-PL"
+        styleClass="custom-input"
+      />
+      <p-slider
+        [ngModel]="customAmount()"
+        (ngModelChange)="onCustomChange($event)"
+        [min]="0"
+        [max]="20000"
+        [step]="50"
+        styleClass="custom-slider"
+      />
+    </div>
+  </div>
+
+  <p-table [value]="rows()" styleClass="p-datatable-sm">
+    <ng-template #header>
+      <tr>
+        <th class="text-right">Kwota nadpłaty (zł/mc)</th>
+        <th class="text-center">Skrócenie okresu</th>
+        <th class="text-right">Oszczędność (zł)</th>
+        <th class="text-right">Oszczędność %</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr [class.custom-row]="row.isCustom">
+        <td class="text-right">
+          {{ row.amount | number: '1.0-0' : 'pl' }}
+          @if (row.isCustom) {
+            <span class="hint">(Twoja)</span>
+          }
+        </td>
+        <td class="text-center">
+          {{ row.monthsSaved }} mc
+          @if (row.monthsSaved | monthsToYears; as years) {
+            <span class="hint">({{ years }})</span>
+          }
+        </td>
+        <td class="text-right positive">{{ row.costSavedAmount | number: '1.2-2' : 'pl' }}</td>
+        <td class="text-right positive">{{ row.costSavedPercent | number: '1.2-2' : 'pl' }}%</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

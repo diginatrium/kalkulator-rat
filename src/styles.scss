@@ -1,0 +1,437 @@
+@use 'primeicons/primeicons.css';
+@use 'primeflex/primeflex.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ─── Design Tokens ───────────────────────────────────────────── */
+:root {
+  --font-body: 'Outfit', 'Segoe UI', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-family: var(--font-body);
+
+  /* Navy ink palette */
+  --navy-950: #071628;
+  --navy-900: #0f2240;
+  --navy-800: #142d56;
+  --navy-700: #1a3c6e;
+  --navy-600: #1e4d8c;
+  --navy-500: #2a62b0;
+  --navy-200: #b8ccec;
+  --navy-100: #dde9f8;
+  --navy-50: #f0f5ff;
+
+  /* Gold accent */
+  --gold-600: #9a7214;
+  --gold-500: #c49a3c;
+  --gold-400: #d9b55a;
+  --gold-100: #f5e9c5;
+
+  /* Page surfaces */
+  --ink: #0d1b2e;
+  --ink-secondary: #46597a;
+  --ink-muted: #8496af;
+  --surface-page: #f4f7fb;
+  --surface-card: #ffffff;
+  --surface-alt: #f8fafd;
+  --border-subtle: #dde4ef;
+  --border-medium: #bfcce0;
+
+  /* Positive delta */
+  --green-strong: #136c34;
+}
+
+/* ─── Base ────────────────────────────────────────────────────── */
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--surface-page);
+  background-image: radial-gradient(circle at 1px 1px, rgba(26, 60, 110, 0.045) 1px, transparent 0);
+  background-size: 20px 20px;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Banking Masthead ────────────────────────────────────────── */
+.banking-masthead {
+  background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-800) 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 24px,
+      rgba(255, 255, 255, 0.012) 24px,
+      rgba(255, 255, 255, 0.012) 25px
+    );
+    pointer-events: none;
+  }
+}
+
+.banking-masthead__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.banking-masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.banking-masthead__rule {
+  width: 3px;
+  height: 2.8rem;
+  background: linear-gradient(180deg, var(--gold-400) 0%, var(--gold-500) 100%);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.banking-masthead__title {
+  font-family: var(--font-display);
+  color: #ffffff;
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin: 0 0 0.15rem;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+.banking-masthead__subtitle {
+  color: var(--navy-200);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 400;
+}
+
+.banking-masthead__badge {
+  color: var(--gold-400);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0.9;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--gold-500);
+  }
+}
+
+.banking-masthead__accent {
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold-500) 0%, var(--gold-400) 60%, transparent 100%);
+}
+
+/* ─── Page Layout ─────────────────────────────────────────────── */
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ─── Section Card ────────────────────────────────────────────── */
+.section-card {
+  border-radius: 0.375rem;
+  box-shadow:
+    0 1px 3px rgba(15, 34, 64, 0.07),
+    0 4px 16px rgba(15, 34, 64, 0.04);
+}
+
+/* ─── PrimeNG Card Overrides ──────────────────────────────────── */
+.p-card {
+  border: 1px solid var(--border-subtle) !important;
+  border-top: 3px solid var(--navy-700) !important;
+  border-radius: 0.375rem !important;
+  box-shadow:
+    0 1px 3px rgba(15, 34, 64, 0.07),
+    0 6px 20px rgba(15, 34, 64, 0.04) !important;
+  background: var(--surface-card) !important;
+}
+
+.p-card .p-card-header {
+  padding-bottom: 0 !important;
+}
+
+.p-card .p-card-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  color: var(--navy-800) !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* ─── PrimeNG DataTable ───────────────────────────────────────── */
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: var(--navy-800) !important;
+  color: #ffffff !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  border: none !important;
+  border-bottom: 2px solid var(--gold-500) !important;
+  padding: 0.7rem 0.9rem !important;
+  white-space: nowrap !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th .p-sortable-column-icon {
+  color: var(--navy-200) !important;
+  font-size: 0.7rem !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th.p-sortable-column:hover {
+  background-color: var(--navy-700) !important;
+  color: #ffffff !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  font-family: var(--font-mono) !important;
+  font-size: 0.875rem !important;
+  color: var(--ink) !important;
+  border-color: var(--border-subtle) !important;
+  padding: 0.5rem 0.9rem !important;
+  line-height: 1.45 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+  background: var(--surface-alt) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover > td {
+  background: var(--navy-50) !important;
+  transition: background 0.12s ease !important;
+}
+
+/* ─── Form Controls ───────────────────────────────────────────── */
+.p-inputtext,
+input.p-inputnumber-input {
+  font-family: var(--font-mono) !important;
+  font-size: 0.95rem !important;
+  border-color: var(--border-medium) !important;
+  border-radius: 3px !important;
+  color: var(--ink) !important;
+  background: var(--surface-card) !important;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s !important;
+}
+
+.p-inputtext:enabled:focus,
+input.p-inputnumber-input:focus {
+  border-color: var(--navy-700) !important;
+  box-shadow: 0 0 0 2px rgba(26, 60, 110, 0.14) !important;
+  outline: none !important;
+}
+
+.p-select {
+  border-color: var(--border-medium) !important;
+  border-radius: 3px !important;
+  font-size: 0.875rem !important;
+}
+
+.p-select:not(.p-disabled):hover {
+  border-color: var(--navy-700) !important;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+.p-button {
+  border-radius: 3px !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  transition: all 0.15s ease !important;
+}
+
+/* ─── Form Labels — banking precision ────────────────────────── */
+.field > label,
+.field .p-label,
+label.font-semibold,
+label.block.font-semibold,
+label.block.text-sm.font-semibold {
+  font-family: var(--font-body) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-secondary) !important;
+}
+
+/* ─── Value Display ───────────────────────────────────────────── */
+.positive-value {
+  color: var(--green-strong);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.currency-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+}
+
+.table-header-bg {
+  background: var(--navy-800);
+}
+
+/* ─── Chart sizing — force canvas to fill wrapper ────────────── */
+app-balance-chart .chart-wrapper,
+app-structure-chart .chart-wrapper {
+  display: block;
+  position: relative;
+
+  > p-chart {
+    display: block;
+    height: 100%;
+  }
+
+  canvas {
+    height: 380px !important;
+    width: 100% !important;
+  }
+}
+
+/* ─── Animations ──────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.p-card {
+  animation: fadeUp 0.3s ease both;
+}
+
+/* ─── Dark Mode ───────────────────────────────────────────────── */
+.dark-mode {
+  --ink: #e6ecf6;
+  --ink-secondary: #b3c0d8;
+  --ink-muted: #6e7d99;
+  --surface-page: #0a1628;
+  --surface-card: #142640;
+  --surface-alt: #0f1f36;
+  --border-subtle: #1d3556;
+  --border-medium: #2a4470;
+}
+
+.dark-mode body {
+  background-color: var(--surface-page);
+  background-image: radial-gradient(circle at 1px 1px, rgba(196, 154, 60, 0.04) 1px, transparent 0);
+  color: var(--ink);
+}
+
+.dark-mode .p-card {
+  background: var(--surface-card) !important;
+  border-color: var(--border-subtle) !important;
+  border-top-color: var(--gold-500) !important;
+}
+
+.dark-mode .p-card .p-card-title {
+  color: var(--gold-100) !important;
+}
+
+.dark-mode .p-datatable .p-datatable-tbody > tr > td {
+  color: var(--ink) !important;
+  background: var(--surface-card) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.dark-mode .p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+  background: var(--surface-alt) !important;
+}
+
+.dark-mode .p-datatable .p-datatable-tbody > tr:hover > td {
+  background: rgba(196, 154, 60, 0.1) !important;
+}
+
+.dark-mode .p-inputtext,
+.dark-mode input.p-inputnumber-input {
+  background: var(--surface-alt) !important;
+  color: var(--ink) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.dark-mode .p-select {
+  background: var(--surface-alt) !important;
+  color: var(--ink) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.dark-mode .field > label,
+.dark-mode .field .p-label,
+.dark-mode label.font-semibold,
+.dark-mode label.block.font-semibold,
+.dark-mode label.block.text-sm.font-semibold {
+  color: var(--ink-secondary) !important;
+}
+
+/* ─── Print ───────────────────────────────────────────────────── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    background-image: none !important;
+  }
+  .no-print,
+  .p-toast,
+  .p-button {
+    display: none !important;
+  }
+  .banking-masthead {
+    background: white !important;
+    border-bottom: 2px solid #1a3c6e !important;
+  }
+  .banking-masthead::after,
+  .banking-masthead__accent {
+    display: none !important;
+  }
+  .banking-masthead__title {
+    color: #1a3c6e !important;
+  }
+  .banking-masthead__subtitle,
+  .banking-masthead__badge {
+    color: #46597a !important;
+  }
+  .p-card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+    page-break-inside: avoid;
+    animation: none !important;
+  }
+  .p-datatable {
+    font-size: 9px;
+  }
+}

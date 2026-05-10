@@ -1,0 +1,80 @@
+<p-card header="Podsumowanie - 3 scenariusze">
+  <div class="three-grid">
+    @for (plan of plans(); track plan.planLabel) {
+      <div class="plan-col" [attr.data-plan]="plan.planLabel">
+        <h4 class="plan-title">
+          {{ plan.displayName }}
+          <app-edu-tip [tip]="planTooltip(plan.planLabel)" />
+        </h4>
+
+        <div class="row">
+          <span class="label">Okres</span>
+          <span class="value">
+            {{ plan.result.actualMonths }} mc
+            @if (plan.result.actualMonths | monthsToYears; as years) {
+              <span class="hint">({{ years }})</span>
+            }
+          </span>
+        </div>
+
+        <div class="row">
+          <span class="label">Łącznie do spłaty</span>
+          <span class="value">{{ plan.result.totalPaid | number: '1.2-2' : 'pl' }} zł</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Kapitał</span>
+          <span class="value">{{ plan.result.totalCapital | number: '1.2-2' : 'pl' }} zł</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Odsetki</span>
+          <span class="value">{{ plan.result.totalInterest | number: '1.2-2' : 'pl' }} zł</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Nadpłaty</span>
+          <span class="value">
+            {{ plan.result.totalOverpayments | number: '1.2-2' : 'pl' }} zł
+          </span>
+        </div>
+
+        @if (inflationEnabled() && plan.result.totalPaidReal !== undefined) {
+          <p-divider />
+          <div class="row real">
+            <span class="label">
+              Realna wartość spłaty
+              <app-edu-tip
+                tip="Suma rat skorygowana o inflację - rzeczywista siła nabywcza tego co zapłacisz"
+              />
+            </span>
+            <span class="value"> {{ plan.result.totalPaidReal | number: '1.2-2' : 'pl' }} zł </span>
+          </div>
+        }
+
+        @if (plan.planLabel !== 'baseline') {
+          <p-divider />
+          <div class="result-section">
+            <div class="row positive">
+              <span class="label">Skrócenie okresu</span>
+              <span class="value">
+                {{ plan.monthsSavedFromBaseline }} mc
+                @if (plan.monthsSavedFromBaseline | monthsToYears; as years) {
+                  <span class="hint">({{ years }})</span>
+                }
+              </span>
+            </div>
+            <div class="row positive">
+              <span class="label">Oszczędność</span>
+              <span class="value">{{ plan.costSavedAmount | number: '1.2-2' : 'pl' }} zł</span>
+            </div>
+            <div class="row positive">
+              <span class="label">Oszczędność %</span>
+              <span class="value"> {{ plan.costSavedPercent | number: '1.2-2' : 'pl' }} % </span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</p-card>

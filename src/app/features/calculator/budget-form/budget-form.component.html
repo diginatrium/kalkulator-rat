@@ -1,0 +1,123 @@
+<p-card header="Twój budżet">
+  <p class="hint">
+    Wpisz dane aby sprawdzić wskaźniki DTI / RdD i ile zostaje Ci na życie po racie kredytu.
+  </p>
+
+  <div class="flex flex-column gap-3">
+    <div class="field">
+      <label for="income" class="block font-semibold mb-1">
+        Miesięczny dochód netto
+        <app-edu-tip tip="Łączny dochód gospodarstwa domowego po opodatkowaniu i składkach" />
+      </label>
+      <p-inputNumber
+        inputId="income"
+        [ngModel]="budget().monthlyIncome"
+        (ngModelChange)="onIncomeChange($event)"
+        suffix=" zł"
+        [min]="0"
+        [maxFractionDigits]="2"
+        locale="pl-PL"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label for="otherDebts" class="block font-semibold mb-1">
+        Inne raty miesięczne
+        <app-edu-tip tip="Suma innych zobowiązań kredytowych/leasingowych/alimentacyjnych" />
+      </label>
+      <p-inputNumber
+        inputId="otherDebts"
+        [ngModel]="budget().otherDebtsMonthly"
+        (ngModelChange)="onOtherDebtsChange($event)"
+        suffix=" zł"
+        [min]="0"
+        [maxFractionDigits]="2"
+        locale="pl-PL"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label for="household" class="block font-semibold mb-1">
+        Liczba osób w gospodarstwie
+        <app-edu-tip tip="Wpływa tylko na wskaźnik 'pozostaje na osobę' - nie na DTI/RdD" />
+      </label>
+      <p-inputNumber
+        inputId="household"
+        [ngModel]="budget().householdSize"
+        (ngModelChange)="onHouseholdSizeChange($event)"
+        [min]="1"
+        [max]="20"
+        [maxFractionDigits]="0"
+        styleClass="w-full"
+      />
+    </div>
+
+    @if (errors().length > 0) {
+      <div class="errors">
+        @for (err of errors(); track err) {
+          <p-message severity="error" [text]="err" />
+        }
+      </div>
+    }
+
+    @if (indicators().level !== 'unknown') {
+      <div class="indicators" [attr.data-level]="indicators().level">
+        <div class="indicator">
+          <div class="indicator-row">
+            <span class="indicator-label">
+              DTI (Debt-to-Income)
+              <app-edu-tip
+                tip="(rata + inne raty) / dochód × 100%. <30% bezpieczne / 30-50% ostrzeżenie / >50% niebezpieczne"
+              />
+            </span>
+            <span class="indicator-value">{{ indicators().dti | number: '1.1-2' : 'pl' }} %</span>
+          </div>
+          <p-progressBar [value]="dtiBarValue()" [showValue]="false" styleClass="dti-bar" />
+        </div>
+
+        <div class="indicator">
+          <div class="indicator-row">
+            <span class="indicator-label">
+              RdD (UOKiK)
+              <app-edu-tip
+                tip="Rata-do-Dochodu wg metody UOKiK do wakacji kredytowych. Powyżej 30% kwalifikuje do zawieszenia rat"
+              />
+            </span>
+            <span class="indicator-value">
+              {{ indicators().rddUokik | number: '1.1-2' : 'pl' }} %
+            </span>
+          </div>
+        </div>
+
+        <div class="indicator">
+          <div class="indicator-row">
+            <span class="indicator-label">Pozostaje miesięcznie</span>
+            <span class="indicator-value">
+              {{ indicators().remainingMonthly | number: '1.2-2' : 'pl' }} zł
+            </span>
+          </div>
+          <div class="indicator-row sub">
+            <span class="indicator-label">Na osobę</span>
+            <span class="indicator-value">
+              {{ indicators().remainingPerPerson | number: '1.2-2' : 'pl' }} zł
+            </span>
+          </div>
+        </div>
+
+        @if (indicators().level === 'danger') {
+          <p-message
+            severity="error"
+            text="DTI > 50% - bank prawdopodobnie odmówi kredytu, sytuacja finansowa wysokiego ryzyka"
+          />
+        } @else if (indicators().level === 'warning') {
+          <p-message
+            severity="warn"
+            text="DTI 30-50% - możliwe ograniczenia w zdolności kredytowej"
+          />
+        }
+      </div>
+    }
+  </div>
+</p-card>

@@ -1,0 +1,150 @@
+<p-card header="Parametry kredytu">
+  <div class="flex flex-column gap-4">
+    <app-loan-slider-input
+      label="Kwota kredytu"
+      inputId="amount"
+      suffix="zł"
+      [tooltip]="'Pożyczona od banku kwota główna - tzw. kapitał'"
+      [value]="loanInput().amount"
+      (valueChange)="onAmountChange($event)"
+      [min]="10000"
+      [max]="3000000"
+      [step]="5000"
+      [fractionDigits]="0"
+    />
+
+    <app-loan-slider-input
+      label="Liczba rat (miesięcy)"
+      inputId="months"
+      suffix="mc"
+      [tooltip]="'Liczba miesięcznych spłat (np. 360 mc = 30 lat). Zakres 12-480 (1-40 lat)'"
+      [value]="loanInput().months"
+      (valueChange)="onMonthsChange($event)"
+      [min]="12"
+      [max]="480"
+      [step]="12"
+      [fractionDigits]="0"
+      [useGrouping]="false"
+    />
+
+    <app-loan-slider-input
+      label="Oprocentowanie roczne"
+      inputId="rate"
+      suffix="%"
+      [tooltip]="'Roczna stopa procentowa - sumuje stawkę bazową (WIBOR/WIRON) i marżę banku'"
+      [value]="loanInput().annualRatePercent"
+      (valueChange)="onRateChange($event)"
+      [min]="0"
+      [max]="20"
+      [step]="0.1"
+      [fractionDigits]="2"
+      [useGrouping]="false"
+    />
+
+    <div class="field">
+      <label class="block font-semibold mb-2">
+        Rodzaj rat
+        <app-edu-tip
+          tip="Równe = stała rata przez cały okres. Malejące = stała część kapitałowa, malejące odsetki, pierwsze raty wyższe."
+        />
+      </label>
+      <div class="flex gap-4 flex-wrap">
+        @for (type of installmentTypes; track type.value) {
+          <div class="flex align-items-center gap-2">
+            <p-radioButton
+              [inputId]="'type_' + type.value"
+              [value]="type.value"
+              [ngModel]="loanInput().installmentType"
+              (ngModelChange)="onTypeChange($event)"
+              name="installmentType"
+            />
+            <label [for]="'type_' + type.value">{{ type.label }}</label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="startDate" class="block font-semibold mb-2">
+        Data startu kredytu
+        <app-edu-tip tip="Data uruchomienia kredytu - wpływa tylko na daty w harmonogramie" />
+      </label>
+      <p-datepicker
+        inputId="startDate"
+        [ngModel]="loanInput().startDate"
+        (ngModelChange)="onStartDateChange($event)"
+        view="month"
+        dateFormat="mm.yy"
+        [showIcon]="true"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field inflation-row">
+      <div class="flex align-items-center gap-2 mb-2">
+        <p-checkbox
+          inputId="inflationEnabled"
+          [binary]="true"
+          [ngModel]="loanInput().inflationEnabled"
+          (ngModelChange)="onInflationEnabledChange($event)"
+        />
+        <label for="inflationEnabled" class="font-semibold">
+          Uwzględnij inflację
+          <app-edu-tip
+            tip="Korekta o utratę siły nabywczej - 1000 zł za 30 lat ≠ 1000 zł dziś. Średnia inflacja w PL to ~4%."
+          />
+        </label>
+      </div>
+      <p-inputNumber
+        inputId="inflationRate"
+        [ngModel]="loanInput().inflationRatePercent"
+        (ngModelChange)="onInflationRateChange($event)"
+        suffix=" %"
+        [min]="0"
+        [max]="30"
+        [minFractionDigits]="1"
+        [maxFractionDigits]="2"
+        [disabled]="!loanInput().inflationEnabled"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="field">
+      <label for="prowizja" class="block font-semibold mb-2">
+        Prowizja za udzielenie
+        <app-edu-tip
+          tip="Jednorazowa opłata banku za udzielenie kredytu. Procent kwoty kredytu lub stała kwota w zł."
+        />
+      </label>
+      <div class="flex gap-2">
+        <p-inputNumber
+          inputId="prowizja"
+          [ngModel]="loanInput().prowizja"
+          (ngModelChange)="onProwizjaChange($event)"
+          [min]="0"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          styleClass="flex-1"
+        />
+        <p-button
+          label="%"
+          [outlined]="loanInput().prowizjaType !== 'percent'"
+          (onClick)="onProwizjaTypeChange('percent')"
+        />
+        <p-button
+          label="zł"
+          [outlined]="loanInput().prowizjaType !== 'amount'"
+          (onClick)="onProwizjaTypeChange('amount')"
+        />
+      </div>
+    </div>
+
+    @if (errors().length > 0) {
+      <div class="errors">
+        @for (err of errors(); track err) {
+          <p-message severity="error" [text]="err" />
+        }
+      </div>
+    }
+  </div>
+</p-card>

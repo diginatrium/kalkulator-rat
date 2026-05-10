@@ -1,0 +1,26 @@
+:host ::ng-deep {
+  .overpayment-row td {
+    background-color: var(--p-green-50, #f0fdf4) !important;
+  }
+
+  .overpayment-amount {
+    color: var(--p-green-600, #16a34a);
+    font-weight: 600;
+  }
+
+  td.real {
+    color: var(--p-blue-600, #2563eb);
+  }
+
+  .text-right {
+    text-align: right !important;
+  }
+
+  .text-center {
+    text-align: center !important;
+  }
+
+  th {
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,78 @@
+<p-toast />
+
+<!-- Banking Masthead — full-width header bar -->
+<div class="banking-masthead">
+  <div class="banking-masthead__inner">
+    <div class="banking-masthead__brand">
+      <div class="banking-masthead__rule"></div>
+      <div>
+        <h1 class="banking-masthead__title">Kalkulator Rat Kredytowych</h1>
+        <p class="banking-masthead__subtitle">Harmonogram spłaty &amp; analiza nadpłat</p>
+      </div>
+    </div>
+    <div class="banking-masthead__badge">Narzędzie finansowe</div>
+  </div>
+  <div class="banking-masthead__accent"></div>
+</div>
+
+<div class="page-container">
+  <app-toolbar
+    class="no-print"
+    [exportingPdf]="exportingPdf()"
+    [formInvalid]="isFormInvalid()"
+    [shareUrl]="shareUrl()"
+    (openSaveDialog)="openSaveDialog()"
+    (exportPdf)="exportPdf()"
+    (exportCsv)="exportCsv()"
+  />
+
+  <div class="main-grid">
+    <aside class="forms-column no-print">
+      <app-loan-form [loanInput]="loanInput()" (loanInputChange)="loanInput.set($event)" />
+
+      <app-overpayments-form
+        [overpayments]="overpayments()"
+        (overpaymentsChange)="overpayments.set($event)"
+        [prowizjaNadplat]="loanInput().prowizjaNadplat"
+        (prowizjaNadplatChange)="onProwizjaNadplatChange($event)"
+        [firstScheduledPayment]="comparison().baseline.result.schedule[0]?.scheduledPayment ?? 0"
+      />
+
+      <app-rate-changes-form
+        [rateChanges]="rateChanges()"
+        (rateChangesChange)="rateChanges.set($event)"
+      />
+
+      <app-budget-form
+        [budget]="budget()"
+        (budgetChange)="budget.set($event)"
+        [averageMonthlyPayment]="comparison().planA.result.averageMonthlyPayment"
+      />
+    </aside>
+
+    <section class="results-column">
+      <app-three-column-summary
+        [comparison]="comparison()"
+        [inflationEnabled]="loanInput().inflationEnabled"
+      />
+
+      <app-balance-chart class="no-print" [comparison]="comparison()" />
+
+      <app-structure-chart class="no-print" [result]="comparison().planA.result" />
+
+      <app-what-if-table class="no-print" [loanInput]="loanInput()" />
+    </section>
+  </div>
+
+  <app-schedule-table
+    [comparison]="comparison()"
+    [inflationEnabled]="loanInput().inflationEnabled"
+  />
+</div>
+
+<app-save-scenario-dialog
+  [visible]="saveDialogVisible()"
+  (visibleChange)="saveDialogVisible.set($event)"
+  [currentState]="appState()"
+  (loadScenario)="applyState($event)"
+/>

@@ -1,0 +1,7 @@
+.chart-wrapper {
+  height: 300px;
+
+  :host ::ng-deep canvas {
+    max-height: 300px;
+  }
+}
