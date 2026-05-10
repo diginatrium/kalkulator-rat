@@ -52,3 +52,7 @@ Thumbs.db
 .claude/agents
 .claude/skills
 .claude/handoffs
+
+# Playwright smoke test artifacts (local-only)
+.playwright-mcp/
+smoke-*.png

@@ -38,8 +38,8 @@ export class LoanCalculatorService {
 
     return {
       baseline: this.toPlanResult('baseline', 'Bez nadpłat', baseline, baseline),
-      planA: this.toPlanResult('planA', 'Plan A', planA, baseline),
-      planB: this.toPlanResult('planB', 'Plan B', planB, baseline),
+      planA: this.toPlanResult('planA', 'Twój plan', planA, baseline),
+      planB: this.toPlanResult('planB', 'Najszybsza spłata', planB, baseline),
     };
   }
 
@@ -95,9 +95,7 @@ export class LoanCalculatorService {
     }
 
     const prowizjaZl =
-      input.prowizjaType === 'percent'
-        ? (input.amount * input.prowizja) / 100
-        : input.prowizja;
+      input.prowizjaType === 'percent' ? (input.amount * input.prowizja) / 100 : input.prowizja;
 
     const schedule: Installment[] = [];
     let balance = input.amount;
@@ -165,9 +163,7 @@ export class LoanCalculatorService {
       balance = Math.max(0, balance);
 
       const ovpCommission =
-        input.prowizjaNadplat > 0
-          ? (effectiveOverpayment * input.prowizjaNadplat) / 100
-          : 0;
+        input.prowizjaNadplat > 0 ? (effectiveOverpayment * input.prowizjaNadplat) / 100 : 0;
 
       totalCapitalRaw += capitalPart;
       totalInterestRaw += interestPart;
@@ -297,8 +293,7 @@ export class LoanCalculatorService {
         const target = keepTotalTargets.get(op.id) as number;
         amount = Math.max(0, target - scheduledPayment);
       } else {
-        amount =
-          amountMode === 'total' ? Math.max(0, op.amount - scheduledPayment) : op.amount;
+        amount = amountMode === 'total' ? Math.max(0, op.amount - scheduledPayment) : op.amount;
       }
 
       totalAmount += amount;

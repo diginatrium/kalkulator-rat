@@ -587,8 +587,8 @@ describe('LoanCalculatorService', () => {
     it('displayName jest po polsku', () => {
       const cmp = service.calculateThreePlans(input(), [], []);
       expect(cmp.baseline.displayName).toBe('Bez nadpłat');
-      expect(cmp.planA.displayName).toBe('Plan A');
-      expect(cmp.planB.displayName).toBe('Plan B');
+      expect(cmp.planA.displayName).toBe('Twój plan');
+      expect(cmp.planB.displayName).toBe('Najszybsza spłata');
     });
   });
 

@@ -86,7 +86,7 @@ export class OverpaymentsFormComponent {
   }
 
   onAmountModeChange(id: string, mode: OverpaymentAmountMode): void {
-    this.update(id, { amountMode: mode, amount: 0 });
+    this.update(id, { amountMode: mode });
   }
 
   update(id: string, partial: Partial<Overpayment>): void {

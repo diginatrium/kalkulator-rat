@@ -29,9 +29,9 @@ export class ThreeColumnSummaryComponent {
   });
 
   planTooltip(label: string): string {
-    if (label === 'baseline') return 'Kredyt bez nadpłat - dla porównania';
+    if (label === 'baseline') return 'Kredyt bez nadpłat - punkt odniesienia';
     if (label === 'planA')
       return 'Twoje nadpłaty z wybranym przez Ciebie skutkiem (skróć okres / zmniejsz ratę / stała kwota)';
-    return 'Te same nadpłaty ale z wymuszonym skutkiem "Stała łączna kwota miesięczna" - najszybsza spłata';
+    return 'Te same nadpłaty ale ze "Stałą łączną kwotą miesięczną" wymuszoną na nadpłatach cyklicznych - to najszybsza spłata kredytu';
   }
 }

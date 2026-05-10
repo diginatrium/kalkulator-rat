@@ -20,12 +20,12 @@ import { TooltipModule } from 'primeng/tooltip';
         line-height: 1;
       }
       .edu-tip {
-        color: var(--p-text-muted-color, #6b7280);
+        color: var(--ink-muted);
         cursor: help;
         font-size: 0.85em;
       }
       .edu-tip:hover {
-        color: var(--p-primary-color, #3b82f6);
+        color: var(--gold-500);
       }
     `,
   ],

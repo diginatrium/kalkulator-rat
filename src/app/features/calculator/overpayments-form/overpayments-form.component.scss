@@ -1,5 +1,7 @@
 .overpayment-row {
-  background: var(--surface-50, #fafafa);
+  background: var(--surface-alt);
+  border-color: var(--border-subtle) !important;
+  color: var(--ink);
   overflow: hidden;
 }
 

@@ -6,8 +6,9 @@
 .inflation-row {
   padding: 0.75rem;
   border-radius: 0.5rem;
-  background: var(--p-surface-50, #fafafa);
-  border: 1px solid var(--p-surface-200, #e5e7eb);
+  background: var(--surface-alt);
+  border: 1px solid var(--border-subtle);
+  color: var(--ink);
 }
 
 .errors {

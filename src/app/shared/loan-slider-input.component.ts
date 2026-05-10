@@ -65,7 +65,7 @@ import { EducationalTooltipComponent } from './educational-tooltip.component';
         display: flex;
         justify-content: space-between;
         margin-top: 0.25rem;
-        color: var(--p-text-muted-color, #6b7280);
+        color: var(--ink-muted);
         font-size: 0.75rem;
       }
       :host ::ng-deep .p-slider {
