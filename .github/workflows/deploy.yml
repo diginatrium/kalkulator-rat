@@ -29,7 +29,7 @@ jobs:
         run: npx ng test --watch=false
 
       - name: Build
-        run: npm run build -- --base-href=/kalkulator-rat-/
+        run: npm run build -- --base-href=/kalkulator-rat/
 
       - name: Deploy to GitHub Pages
         run: npx angular-cli-ghpages --dir=dist/kalkulator-rat/browser

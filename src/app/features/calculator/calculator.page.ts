@@ -160,7 +160,7 @@ export class CalculatorPage implements OnInit {
 
   exportCsv(): void {
     this.csvService.exportSchedule(
-      'kalkulator-rat-plan-a.csv',
+      'kalkulator-rat_plan-a.csv',
       this.comparison().planA.result.schedule,
     );
     this.messageService.add({
