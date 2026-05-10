@@ -35,6 +35,7 @@
         (overpaymentsChange)="overpayments.set($event)"
         [prowizjaNadplat]="loanInput().prowizjaNadplat"
         (prowizjaNadplatChange)="onProwizjaNadplatChange($event)"
+        [firstScheduledPayment]="comparison().baseline.result.schedule[0]?.scheduledPayment ?? 0"
       />
 
       <app-rate-changes-form

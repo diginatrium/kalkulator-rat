@@ -78,6 +78,18 @@
                 op.amountMode === 'total' ? 'np. 3 500 zł (rata + nadpłata)' : 'np. 500 zł nadpłaty'
               "
             />
+            @if (isTotalBelowInstallment(op)) {
+              <p-message
+                severity="warn"
+                styleClass="mt-2 w-full"
+                [text]="
+                  'Łączna wpłata jest mniejsza niż pierwsza rata (~' +
+                  (firstScheduledPayment() | number: '1.0-0') +
+                  ' zł). Nadpłata wyniesie 0 zł — zwiększ kwotę powyżej raty lub przełącz na tryb ' +
+                  'Nadwyżka.'
+                "
+              />
+            }
           </div>
 
           <div class="field col-6">

@@ -1,9 +1,11 @@
 import { Component, input, output } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import {
   Overpayment,
@@ -16,7 +18,16 @@ import {
   selector: 'app-overpayments-form',
   templateUrl: './overpayments-form.component.html',
   styleUrl: './overpayments-form.component.scss',
-  imports: [FormsModule, InputNumberModule, SelectModule, ButtonModule, CardModule, TooltipModule],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    InputNumberModule,
+    SelectModule,
+    ButtonModule,
+    CardModule,
+    MessageModule,
+    TooltipModule,
+  ],
 })
 export class OverpaymentsFormComponent {
   overpayments = input.required<Overpayment[]>();
@@ -24,6 +35,24 @@ export class OverpaymentsFormComponent {
 
   prowizjaNadplat = input.required<number>();
   prowizjaNadplatChange = output<number>();
+
+  /**
+   * First baseline scheduled payment (zł). Used to validate that
+   * amountMode='total' on a recurring KEEP_TOTAL_PAYMENT overpayment
+   * is at least as large as the regular installment — otherwise the
+   * locked target stays below it forever and overpayment becomes 0.
+   */
+  firstScheduledPayment = input<number>(0);
+
+  isTotalBelowInstallment(op: Overpayment): boolean {
+    return (
+      op.effect === 'KEEP_TOTAL_PAYMENT' &&
+      op.type !== 'ONE_TIME' &&
+      op.amountMode === 'total' &&
+      op.amount > 0 &&
+      op.amount < this.firstScheduledPayment()
+    );
+  }
 
   readonly typeOptions: { label: string; value: OverpaymentType }[] = [
     { label: 'Jednorazowo', value: 'ONE_TIME' },
