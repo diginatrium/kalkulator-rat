@@ -54,9 +54,13 @@ export class LoanCalculatorService {
     const baseline = this.calculateSchedule(input, [], []);
     const modified = this.calculateSchedule(input, overpayments, rateChanges);
 
-    const baselineCost = baseline.totalInterest + baseline.totalCapital;
+    const baselineCost =
+      baseline.totalInterest + baseline.totalCapital + baseline.totalOvpCommission;
     const modifiedCost =
-      modified.totalInterest + modified.totalCapital + modified.totalOverpayments;
+      modified.totalInterest +
+      modified.totalCapital +
+      modified.totalOverpayments +
+      modified.totalOvpCommission;
     const costSavedAmount = baselineCost - modifiedCost;
     const costSavedPercent = baselineCost > 0 ? (costSavedAmount / baselineCost) * 100 : 0;
 
@@ -81,12 +85,19 @@ export class LoanCalculatorService {
         totalCapital: 0,
         totalInterest: 0,
         totalOverpayments: 0,
+        totalProwizja: 0,
+        totalOvpCommission: 0,
         actualMonths: 0,
         averageMonthlyPayment: 0,
         totalPaidReal: input.inflationEnabled ? 0 : undefined,
         totalInterestReal: input.inflationEnabled ? 0 : undefined,
       };
     }
+
+    const prowizjaZl =
+      input.prowizjaType === 'percent'
+        ? (input.amount * input.prowizja) / 100
+        : input.prowizja;
 
     const schedule: Installment[] = [];
     let balance = input.amount;
@@ -97,8 +108,10 @@ export class LoanCalculatorService {
     let totalCapitalRaw = 0;
     let totalInterestRaw = 0;
     let totalOverpaymentsRaw = 0;
+    let totalOvpCommissionRaw = 0;
     let totalPaidRealRaw = 0;
     let totalInterestRealRaw = 0;
+    let laczneKosztyRunning = prowizjaZl;
 
     const sortedRateChanges = [...rateChanges].sort(
       (a, b) => a.fromInstallment - b.fromInstallment,
@@ -151,11 +164,18 @@ export class LoanCalculatorService {
       balance -= effectiveOverpayment;
       balance = Math.max(0, balance);
 
+      const ovpCommission =
+        input.prowizjaNadplat > 0
+          ? (effectiveOverpayment * input.prowizjaNadplat) / 100
+          : 0;
+
       totalCapitalRaw += capitalPart;
       totalInterestRaw += interestPart;
       totalOverpaymentsRaw += effectiveOverpayment;
+      totalOvpCommissionRaw += ovpCommission;
+      laczneKosztyRunning += interestPart + ovpCommission;
 
-      const totalThisInstallment = scheduledPayment + effectiveOverpayment;
+      const totalThisInstallment = scheduledPayment + effectiveOverpayment + ovpCommission;
       let realValueOfPayment: number | undefined;
       if (input.inflationEnabled) {
         const discount = Math.pow(inflationMonthlyFactor, installmentNumber);
@@ -172,6 +192,7 @@ export class LoanCalculatorService {
         interestPart: round2(interestPart),
         overpayment: round2(effectiveOverpayment),
         remainingBalance: round2(balance),
+        laczneKoszty: round2(laczneKosztyRunning),
         realValueOfPayment:
           realValueOfPayment !== undefined ? round2(realValueOfPayment) : undefined,
       };
@@ -193,7 +214,12 @@ export class LoanCalculatorService {
       installmentNumber++;
     }
 
-    const totalPaid = totalCapitalRaw + totalInterestRaw + totalOverpaymentsRaw;
+    const totalPaid =
+      totalCapitalRaw +
+      totalInterestRaw +
+      totalOverpaymentsRaw +
+      prowizjaZl +
+      totalOvpCommissionRaw;
     const averageMonthlyPayment =
       schedule.length > 0
         ? schedule.reduce((s, i) => s + i.scheduledPayment + i.overpayment, 0) / schedule.length
@@ -205,6 +231,8 @@ export class LoanCalculatorService {
       totalCapital: round2(totalCapitalRaw),
       totalInterest: round2(totalInterestRaw),
       totalOverpayments: round2(totalOverpaymentsRaw),
+      totalProwizja: round2(prowizjaZl),
+      totalOvpCommission: round2(totalOvpCommissionRaw),
       actualMonths: schedule.length,
       averageMonthlyPayment: round2(averageMonthlyPayment),
       totalPaidReal: input.inflationEnabled ? round2(totalPaidRealRaw) : undefined,
@@ -218,8 +246,13 @@ export class LoanCalculatorService {
     result: LoanResult,
     baseline: LoanResult,
   ): PlanResult {
-    const baselineCost = baseline.totalInterest + baseline.totalCapital;
-    const planCost = result.totalInterest + result.totalCapital + result.totalOverpayments;
+    const baselineCost =
+      baseline.totalInterest + baseline.totalCapital + baseline.totalOvpCommission;
+    const planCost =
+      result.totalInterest +
+      result.totalCapital +
+      result.totalOverpayments +
+      result.totalOvpCommission;
     const costSavedAmount = baselineCost - planCost;
     const costSavedPercent = baselineCost > 0 ? (costSavedAmount / baselineCost) * 100 : 0;
 
@@ -254,15 +287,18 @@ export class LoanCalculatorService {
     for (const op of overpayments) {
       if (!this.isOverpaymentActive(op, installmentNumber)) continue;
 
+      const amountMode = op.amountMode ?? 'surplus';
       let amount: number;
       if (op.effect === 'KEEP_TOTAL_PAYMENT' && op.type !== 'ONE_TIME') {
         if (!keepTotalTargets.has(op.id)) {
-          keepTotalTargets.set(op.id, scheduledPayment + op.amount);
+          const target = amountMode === 'total' ? op.amount : scheduledPayment + op.amount;
+          keepTotalTargets.set(op.id, target);
         }
         const target = keepTotalTargets.get(op.id) as number;
         amount = Math.max(0, target - scheduledPayment);
       } else {
-        amount = op.amount;
+        amount =
+          amountMode === 'total' ? Math.max(0, op.amount - scheduledPayment) : op.amount;
       }
 
       totalAmount += amount;
