@@ -767,4 +767,105 @@ describe('LoanCalculatorService', () => {
       expect(result.schedule[0].overpayment).toBeCloseTo(500, 0);
     });
   });
+
+  describe('prowizja od nadpłat — naliczana od zaaplikowanej kwoty po cap', () => {
+    it('gdy nadpłata przewyższa saldo, commission liczona od capped overpayment', () => {
+      // 50k kredyt, 12 mc, 12% rocznie → po pierwszej racie saldo ~46-47k
+      // ONE_TIME 100k w racie 1 → effectiveOverpayment cap'uje się do salda
+      // commission = (capped × 10%) ≠ (100k × 10%)
+      const input: LoanInput = makeInput({
+        amount: 50000,
+        months: 12,
+        annualRatePercent: 12,
+        installmentType: 'EQUAL',
+        prowizjaNadplat: 10,
+      });
+      const op: Overpayment = {
+        id: '1',
+        type: 'ONE_TIME',
+        amountMode: 'surplus',
+        amount: 100000,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule(input, [op], []);
+
+      // Overpayment was capped — schedule should reflect actual amount
+      const cappedOverpayment = result.schedule[0].overpayment;
+      expect(cappedOverpayment).toBeLessThan(100000);
+      expect(cappedOverpayment).toBeGreaterThan(40000); // most of remaining capital
+
+      // Commission is exactly 10% of the *capped* amount, NOT 10% of 100k
+      expect(result.totalOvpCommission).toBeCloseTo(cappedOverpayment * 0.1, 0);
+      expect(result.totalOvpCommission).toBeLessThan(10000); // would be 10000 if uncapped
+    });
+  });
+
+  describe('amountMode=total z target < scheduledPayment (regression: silent zero)', () => {
+    it('MONTHLY KEEP_TOTAL_PAYMENT z amount poniżej raty → wszystkie nadpłaty = 0', () => {
+      // Default 400k/360/7.5% → first scheduledPayment ~2796 zł
+      // amountMode='total' z amount=2000 → target=2000, nadpłata = max(0, 2000-2796) = 0 zawsze
+      const input: LoanInput = makeInput({
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      });
+      const op: Overpayment = {
+        id: '1',
+        type: 'MONTHLY',
+        amountMode: 'total',
+        amount: 2000, // poniżej pierwszej raty ~2796
+        fromInstallment: 1,
+        effect: 'KEEP_TOTAL_PAYMENT',
+      };
+      const result = service.calculateSchedule(input, [op], []);
+
+      // Wszystkie wpisy w harmonogramie mają overpayment = 0
+      result.schedule.forEach((inst) => {
+        expect(inst.overpayment).toBe(0);
+      });
+      // Loan finishes in original term (no acceleration)
+      expect(result.actualMonths).toBe(360);
+      expect(result.totalOverpayments).toBe(0);
+    });
+  });
+
+  describe('terminacja w degeneratych przypadkach', () => {
+    it('schedule kończy się gdy saldo schodzi do dust (0.005)', () => {
+      const input: LoanInput = makeInput({
+        amount: 1000,
+        months: 12,
+        annualRatePercent: 5,
+        installmentType: 'EQUAL',
+      });
+      const result = service.calculateSchedule(input, [], []);
+      expect(result.actualMonths).toBeLessThanOrEqual(12);
+      expect(result.actualMonths).toBeGreaterThanOrEqual(11);
+      const last = result.schedule[result.schedule.length - 1];
+      expect(last.remainingBalance).toBeCloseTo(0, 1);
+    });
+
+    it('agresywna nadpłata nie powoduje overrun ponad maxIterations (months×2+100)', () => {
+      const input: LoanInput = makeInput({
+        amount: 400000,
+        months: 360,
+        annualRatePercent: 7.5,
+        installmentType: 'EQUAL',
+      });
+      // Każdego miesiąca nadpłata 50000 zł — kredyt zostanie spłacony za ~8 rat
+      const op: Overpayment = {
+        id: '1',
+        type: 'MONTHLY',
+        amountMode: 'surplus',
+        amount: 50000,
+        fromInstallment: 1,
+        effect: 'SHORTEN_PERIOD',
+      };
+      const result = service.calculateSchedule(input, [op], []);
+      expect(result.actualMonths).toBeLessThan(20);
+      // Nigdy nie przekraczamy bezpiecznika maxIterations
+      expect(result.actualMonths).toBeLessThanOrEqual(360 * 2 + 100);
+    });
+  });
 });
