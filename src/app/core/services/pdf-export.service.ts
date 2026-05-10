@@ -3,6 +3,35 @@ import { LoanInput } from '../models/loan-input.model';
 import { ThreePlanComparison } from '../models/loan-result.model';
 import { Budget, DtiIndicators } from '../models/budget.model';
 
+/**
+ * Roboto Regular w wariancie Latin-Extended (obsługuje ą, ć, ę, ł, ń, ó, ś, ź, ż).
+ * Ładujemy TTF z jsDelivr CDN (cached przez przeglądarkę), konwertujemy do base64
+ * i rejestrujemy w jsPDF. Bez tego natywne fonty (helvetica) renderują polskie
+ * znaki jako tofu/krzaczki.
+ */
+const FONT_URL =
+  'https://cdn.jsdelivr.net/npm/@fontsource/roboto@5.0.13/files/roboto-latin-ext-400-normal.ttf';
+let fontCache: string | null = null;
+
+async function loadRobotoBase64(): Promise<string | null> {
+  if (fontCache) return fontCache;
+  try {
+    const resp = await fetch(FONT_URL);
+    if (!resp.ok) return null;
+    const buf = await resp.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
+    }
+    fontCache = btoa(binary);
+    return fontCache;
+  } catch {
+    return null;
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class PdfExportService {
   async exportToPdf(
@@ -18,12 +47,22 @@ export class PdfExportService {
     const pl = (n: number) =>
       n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    doc.setFont('helvetica', 'bold');
+    // Register Roboto with Polish glyph support; fallback to helvetica if CDN fails.
+    const fontBase64 = await loadRobotoBase64();
+    let fontName = 'helvetica';
+    if (fontBase64) {
+      doc.addFileToVFS('Roboto-Regular.ttf', fontBase64);
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'bold');
+      fontName = 'Roboto';
+    }
+
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(18);
     doc.text('Kalkulator rat kredytowych', 105, 20, { align: 'center' });
 
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     let y = 32;
     doc.text(`Kwota kredytu: ${pl(input.amount)} zł`, 14, y);
     y += 6;
@@ -49,13 +88,13 @@ export class PdfExportService {
       y += 6;
     }
 
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(13);
     doc.text('Podsumowanie - 3 scenariusze', 14, y + 4);
 
     autoTable(doc, {
       startY: y + 8,
-      head: [['Parametr', 'Bez nadpłat', 'Plan A', 'Plan B']],
+      head: [['Parametr', 'Bez nadpłat', 'Twój plan', 'Najszybsza spłata']],
       body: [
         [
           'Okres kredytowania (mc)',
@@ -107,13 +146,14 @@ export class PdfExportService {
         ],
       ],
       theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] as [number, number, number] },
+      styles: { font: fontName },
+      headStyles: { fillColor: [59, 130, 246] as [number, number, number], font: fontName },
     });
 
     const afterY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
 
     if (budget && dti && dti.level !== 'unknown') {
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.setFontSize(13);
       doc.text('Twój budżet', 14, afterY + 10);
 
@@ -130,14 +170,15 @@ export class PdfExportService {
           ['Pozostaje na osobę', `${pl(dti.remainingPerPerson)} zł`],
         ],
         theme: 'striped',
-        headStyles: { fillColor: [34, 197, 94] as [number, number, number] },
+        styles: { font: fontName },
+        headStyles: { fillColor: [34, 197, 94] as [number, number, number], font: fontName },
       });
     }
 
     doc.addPage();
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(13);
-    doc.text('Harmonogram spłaty - Plan A', 14, 15);
+    doc.text('Harmonogram spłaty - Twój plan', 14, 15);
 
     const scheduleRows = comparison.planA.result.schedule.map((inst) => {
       const m = (inst.date.getMonth() + 1).toString().padStart(2, '0');
@@ -159,8 +200,8 @@ export class PdfExportService {
       ],
       body: scheduleRows,
       theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] as [number, number, number] },
-      styles: { fontSize: 7 },
+      headStyles: { fillColor: [59, 130, 246] as [number, number, number], font: fontName },
+      styles: { fontSize: 7, font: fontName },
       columnStyles: {
         0: { halign: 'center' as const },
         1: { halign: 'center' as const },
