@@ -51,12 +51,12 @@
     </aside>
 
     <section class="results-column">
+      <app-balance-chart class="no-print" [comparison]="comparison()" />
+
       <app-three-column-summary
         [comparison]="comparison()"
         [inflationEnabled]="loanInput().inflationEnabled"
       />
-
-      <app-balance-chart class="no-print" [comparison]="comparison()" />
 
       <app-structure-chart class="no-print" [result]="comparison().planA.result" />
 
