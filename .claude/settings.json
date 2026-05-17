@@ -26,8 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs'),d=new Date().toLocaleDateString('en-CA'),p='C:/Users/Wiktor/Desktop/Claude/kalkulator-rat/.agents/handoffs/'+d+'.md';if(!fs.existsSync(p)){console.log('\\u26a0\\ufe0f  No handoff for '+d+'. Run /handoff before closing the session.')}\"",
-            "blocking": false
+            "command": "node -e \"const fs=require('fs'),d=new Date().toLocaleDateString('en-CA'),p='C:/Users/Wiktor/Desktop/Claude/kalkulator-rat/.agents/handoffs/'+d+'.md';if(!fs.existsSync(p)){console.error('\\u26a0\\ufe0f  No handoff for '+d+'. Run /handoff before closing the session.');process.exit(2)}\""
           }
         ]
       }
