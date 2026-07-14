@@ -27,6 +27,10 @@
           {
             "type": "command",
             "command": "node -e \"const fs=require('fs'),d=new Date().toLocaleDateString('en-CA'),p='C:/Users/Wiktor/Desktop/Claude/kalkulator-rat/.agents/handoffs/'+d+'.md';if(!fs.existsSync(p)){console.error('\\u26a0\\ufe0f  No handoff for '+d+'. Run /handoff before closing the session.');process.exit(2)}\""
+          },
+          {
+            "type": "command",
+            "command": "node -e \"const {spawnSync}=require('child_process');const cwd='C:/Users/Wiktor/Desktop/Claude/kalkulator-rat';const chg=spawnSync('git',['diff','--name-only'],{cwd,encoding:'utf8'});if(chg.stdout.trim()){const r=spawnSync('npm',['test','--','--run'],{cwd,encoding:'utf8'});if(r.status!==0){process.stderr.write('\\u26d4 Tests failing \\u2014 fix before ending session.\\n'+(r.stdout||r.stderr||''));process.exit(2);}}\""
           }
         ]
       }
